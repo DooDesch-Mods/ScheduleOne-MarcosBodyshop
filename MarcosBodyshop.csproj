@@ -1,13 +1,32 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- Snitch profiler, DEBUG only. Release contains zero Snitch types. -->
+  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/Snitch.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/Snitch.props')" />
+
+  <!-- Shared release hardening: strip Release debug info + assembly identity, cuts AV false positives (see Workspace/build/Hardening.props). -->
+  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/Hardening.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/Hardening.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/Hardening.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/Hardening.props')" />
+
+  <!-- CI checks out the shared Workspace repo as a SUBFOLDER of this project, so the SDK's default **/*.cs glob
+       would sweep in Workspace/ui, Workspace/build, etc. This mod compiles only its own source. -->
+  <ItemGroup>
+    <Compile Remove="Workspace/**/*.cs" />
+    <Compile Remove="tools/**/*.cs" />
+  </ItemGroup>
+
+  <!-- Generates DooDesch.ModVersion.Current from this project's own version property, so MelonInfo carries the
+       released version and cannot drift out of it. MUST come after the Workspace Remove so CI keeps the file. -->
+  <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/ModVersion.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/ModVersion.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/ModVersion.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/ModVersion.props')" />
   <!-- Where a build is allowed to install: the leased test slot, never a real game installation without saying so
        out loud. See Workspace/build/Deploy.props. -->
   <Import Project="$(MSBuildThisFileDirectory)../Workspace/build/Deploy.props" Condition="Exists('$(MSBuildThisFileDirectory)../Workspace/build/Deploy.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)Workspace/build/Deploy.props" Condition="Exists('$(MSBuildThisFileDirectory)Workspace/build/Deploy.props')" />
 
   <!--
-    Marco's Bodyshop - a tuning garage at Marco's for every car, with a menu in the style of Benny's.
-    This is the phase-1 mockup: the menu page on a Sideload surface over the game, plus the console commands that
-    put it there and measure whether mouse and keys reach it while the camera is held.
+    Marco's Bodyshop - MelonLoader IL2CPP mod for Schedule I.
+    A tuning garage at Marco's for every car, with a menu in the style of Benny's: paint, lights and looks, and the
+    Chassis performance parts. Other mods add categories, entries and whole garages of their own through BodyshopApi.
   -->
 
   <PropertyGroup>
@@ -18,8 +37,14 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>MarcosBodyshop</RootNamespace>
     <AssemblyName>MarcosBodyshop</AssemblyName>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- NEVER bumped. The release version comes from the tag: CI builds with -p:Version=X.Y.Z, which is a global
+         MSBuild property and cannot be overwritten from here. A local build says 0.0.0-dev.
+         Rules: Workspace/docs/RELEASE-PROCESS.md, section "Versioning". -->
     <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
-    <NoWarn>$(NoWarn);MSB3277;MSB3245</NoWarn>
+    <!-- MSB3277/MSB3245: il2cpp interop transitive refs. CS1591: internal members need no doc comment. -->
+    <NoWarn>$(NoWarn);MSB3277;MSB3245;CS1591</NoWarn>
     <WorkspaceLibPath Condition="'$(WorkspaceLibPath)' == ''">$(MSBuildThisFileDirectory)../Workspace/lib</WorkspaceLibPath>
     <GameManagedPath>$(WorkspaceLibPath)/il2cpp/game</GameManagedPath>
     <MelonLoaderPath>$(WorkspaceLibPath)/il2cpp/melonloader</MelonLoaderPath>
@@ -34,10 +59,26 @@
     <Reference Include="Assembly-CSharp"><HintPath>$(GameManagedPath)/Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Il2CppScheduleOne.Core"><HintPath>$(GameManagedPath)/Il2CppScheduleOne.Core.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Il2CppFishNet.Runtime"><HintPath>$(GameManagedPath)/Il2CppFishNet.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="S1API.Il2Cpp.MelonLoader"><HintPath>$(WorkspaceLibPath)/il2cpp/s1api/S1API.Il2Cpp.MelonLoader.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameManagedPath)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(GameManagedPath)/UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UI"><HintPath>$(GameManagedPath)/UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UIModule"><HintPath>$(GameManagedPath)/UnityEngine.UIModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Unity.InputSystem"><HintPath>$(GameManagedPath)/Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.TextMeshPro"><HintPath>$(GameManagedPath)/Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <!-- Chassis holds the tuning state (parts, paint, lights) and syncs and saves it. A sibling checkout builds it;
+       otherwise the DLL from the shared lib folder. ChassisProject points at another checkout, e.g. a Chassis
+       worktree with an API change. -->
+  <PropertyGroup>
+    <ChassisProject Condition="'$(ChassisProject)' == ''">$(MSBuildThisFileDirectory)../Chassis/Chassis.csproj</ChassisProject>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(ChassisProject)')">
+    <ProjectReference Include="$(ChassisProject)" Private="false" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists('$(ChassisProject)')">
+    <Reference Include="Chassis"><HintPath>$(WorkspaceLibPath)/il2cpp/chassis/Chassis.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 
   <!-- Sideload is never referenced: the page talks to it through the single-file shim, which finds the host by
@@ -50,9 +91,9 @@
     <Compile Condition="'$(SideloadShimPath)' != ''" Include="$(SideloadShimPath)" Link="Sideload.Api.cs" />
   </ItemGroup>
 
-  <!-- The menu page. The LogicalName prefix is the bundle prefix the surface mounts. -->
+  <!-- The garage menu page. The LogicalName prefix is the bundle prefix the surface mounts. -->
   <ItemGroup>
-    <EmbeddedResource Include="Assets/bodyshop/*" Exclude="Assets/bodyshop/*.md">
+    <EmbeddedResource Include="Assets/bodyshop/*" Exclude="Assets/bodyshop/*.md;Assets/bodyshop/backdrop.png">
       <LogicalName>MarcosBodyshop.Assets.bodyshop.%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>

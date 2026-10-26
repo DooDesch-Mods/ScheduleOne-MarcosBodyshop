@@ -98,6 +98,7 @@ body {
 .track { display: flex; flex-direction: row; flex: 1; height: 10px; background: #2A2E37; }
 .fill { height: 10px; background: #F2F3F5; }
 .gain { height: 10px; background: var(--accent); }
+.loss { height: 10px; background: var(--short); }
 
 /* Money and the car, top right, large enough to read against a bright sky. */
 .wallet { position: absolute; right: 56px; top: 56px; align-items: flex-end; }
