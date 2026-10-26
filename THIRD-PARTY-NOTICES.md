@@ -25,7 +25,7 @@ is given anyway.
 |---|---|---|---|
 | `clown.pcm` | Clown Horn (Single Honk) | Gimp_Revival | https://freesound.org/people/Gimp_Revival/sounds/588570/ |
 | `duck.pcm` | Rubber duck toy squeaking | panmaterac | https://freesound.org/people/panmaterac/sounds/201285/ |
-| `train.pcm` | Cargo train horn at midnight | sgo.75 | https://freesound.org/people/sgo.75/sounds/845065/ |
+| `train.pcm` | Train Horn 70 (Clean) | FunWithSound | https://freesound.org/people/FunWithSound/sounds/591874/ |
 | `fanfare.pcm` | Real Trumpet Fanfare 1 | qubodup | https://freesound.org/people/qubodup/sounds/855457/ |
 | `cucaracha.pcm` | La cucaracha car Horn | csnmedia | https://freesound.org/people/csnmedia/sounds/388276/ |
 | `bicycle.pcm` | bicycle-horn-1.wav | AntumDeluge | https://opengameart.org/content/bicycle-horn |
