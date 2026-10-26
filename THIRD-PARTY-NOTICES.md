@@ -17,7 +17,7 @@ The glyphs of the garage menu (`Assets/bodyshop/i-*.png`) are Lucide icons, rend
 
 ## Sounds
 
-The horns and the install sound (`Assets/sounds/*.pcm`) are recordings in the public domain, each cut to one honk
+The horns and the install sound (`Assets/sounds/*.pcm` in the table) are recordings in the public domain, each cut to one honk
 or one burst, normalised and stored as 16-bit mono PCM at 22050 Hz. All are released under Creative Commons Zero (CC0 1.0). Credit is not required and
 is given anyway.
 
@@ -30,6 +30,9 @@ is given anyway.
 | `cucaracha.pcm` | La cucaracha car Horn | csnmedia | https://freesound.org/people/csnmedia/sounds/388276/ |
 | `bicycle.pcm` | bicycle-horn-1.wav | AntumDeluge | https://opengameart.org/content/bicycle-horn |
 | `fit.pcm` | Air Impact Wrench | sevenbsb | https://freesound.org/people/sevenbsb/sounds/349398/ |
+
+The nitro sounds (`nitro-engage.pcm`, `nitro-loop.pcm`, `nitro-release.pcm`) are the mod's own work, synthesised
+from noise and sines by `Assets/sounds/nitro.py` in the same format. They fall under the mod's license.
 
 The respray sound and the workshop music are the game's own clips, played from the running game; the mod ships
 none of them.

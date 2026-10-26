@@ -27,6 +27,7 @@ namespace MarcosBodyshop.Builtin
         {
             _on.Clear();
             _built.Clear();
+            NitroSound.Reset();
         }
 
         /// <summary>Everyone: the host says a car's nitro went on or off.</summary>
@@ -34,6 +35,7 @@ namespace MarcosBodyshop.Builtin
         {
             bool changed = on ? _on.Add(vehicle) : _on.Remove(vehicle);
             if (changed) Core.Log.Msg("[Flames] net " + vehicle + " nitro flames " + (on ? "on" : "off") + ".");
+            NitroSound.Set(vehicle, on);
         }
 
         internal static void LateTick()
@@ -43,7 +45,7 @@ namespace MarcosBodyshop.Builtin
             {
                 var lv = ShopNet.VehicleById(id);
                 // A driver who left the game cannot send the off any more.
-                if (lv == null || !lv.IsOccupied) { _on.Remove(id); Core.Log.Msg("[Flames] net " + id + " " + (lv == null ? "is gone" : "has no driver") + " - flames off."); continue; }
+                if (lv == null || !lv.IsOccupied) { _on.Remove(id); Core.Log.Msg("[Flames] net " + id + " " + (lv == null ? "is gone" : "has no driver") + " - flames off."); NitroSound.Set(id, false); continue; }
                 if (!_built.ContainsKey(id)) _built[id] = Build(lv, id);
             }
             foreach (var kv in new List<KeyValuePair<int, List<Transform>>>(_built))
@@ -67,7 +69,24 @@ namespace MarcosBodyshop.Builtin
             }
         }
 
-        internal static string Describe() => "flames on " + _on.Count + " car(s), built on " + _built.Count;
+        internal static string Describe() => "flames on " + _on.Count + " car(s), built on " + _built.Count + "; " + NitroSound.Describe();
+
+        /// <summary>The middle of the car's built flames, in the car root's local space; false before they are built.</summary>
+        internal static bool TryExhaust(int vehicle, out Vector3 local)
+        {
+            local = Vector3.zero;
+            if (!_built.TryGetValue(vehicle, out var list)) return false;
+            int n = 0;
+            foreach (var f in list)
+            {
+                if (f == null) continue;
+                local += f.localPosition;
+                n++;
+            }
+            if (n == 0) return false;
+            local /= n;
+            return true;
+        }
 
         /// <summary>One flame per exhaust; one at the rear underside when the car has no exhaust emitters.</summary>
         private static List<Transform> Build(LandVehicle lv, int id)

@@ -48,7 +48,10 @@ namespace MarcosBodyshop
 
         public override void OnLateUpdate()
         {
-            if (_inWorld) Builtin.Flames.LateTick();
+            if (!_inWorld) return;
+            Builtin.Flames.LateTick();
+            // After the flames, so a car's sound sources find the exhaust the flames were just built at.
+            Builtin.NitroSound.Tick();
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)

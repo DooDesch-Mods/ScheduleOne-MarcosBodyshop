@@ -15,7 +15,8 @@ namespace MarcosBodyshop.Builtin
     /// <summary>
     /// The Nitrous Kit (booster slot): while the driver holds the nitro key and drives forward, the car pulls harder and
     /// runs faster by <see cref="Prefs.NitroBoost"/>, from a tank that empties in <see cref="Prefs.NitroSeconds"/> and
-    /// refills by itself. Blue flames burn at the car's exhaust on every machine; the driver's on/off goes through the
+    /// refills by itself. Blue flames burn and the nitro hisses at the car's exhaust on every machine
+    /// (<see cref="Flames"/>, <see cref="NitroSound"/>); the driver's on/off goes through the
     /// host (<c>req.nitro vehicle 1|0</c> -> <c>nitro vehicle 1|0</c>). The wheelchair of Rollin keeps its own nitro.
     /// </summary>
     internal static class Nitro
