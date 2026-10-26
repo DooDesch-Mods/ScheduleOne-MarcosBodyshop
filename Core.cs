@@ -60,6 +60,7 @@ namespace MarcosBodyshop
             if (world)
             {
                 Shop.Marking.WorldLoaded();
+                Shop.Sounds.WorldLoaded();
                 Log.Msg("[Core] world loaded.");
                 return;
             }

@@ -20,6 +20,7 @@ namespace MarcosBodyshop.Debug
     /// <item><c>bodyshop list cat</c>, <c>pick cat/entry</c>, <c>buy cat/entry</c> - the page's calls, without the page.</item>
     /// <item><c>bodyshop cam ex ey ez tx ty tz</c> - hold the camera there (to measure shots).</item>
     /// <item><c>bodyshop cash N</c> - add N to the local player's cash.</item>
+    /// <item><c>bodyshop radio x y z yaw</c> - move the workshop radio (to find its spot).</item>
     /// <item><c>bodyshop nitro [seconds]</c> - burn nitro in the driven car without the key; no number shows the state.</item>
     /// </list>
     /// </summary>
@@ -47,6 +48,15 @@ namespace MarcosBodyshop.Debug
                 case "pick": Say("pick: " + Session.Pick(a)); break;
                 case "buy": { string r = Session.Buy(a); Say("buy: " + (r.Length == 0 ? "sent to the host" : r)); break; }
                 case "cam": Cam(p); break;
+                case "radio":
+                {
+                    var f = new float[4];
+                    if (p.Length < 6) { Say("radio needs x y z yaw"); break; }
+                    bool ok = true;
+                    for (int i = 0; i < 4; i++) ok &= float.TryParse(p[i + 2], NumberStyles.Float, CultureInfo.InvariantCulture, out f[i]);
+                    Say(ok ? Sounds.Place(new Vector3(f[0], f[1], f[2]), f[3]) : "radio: four numbers needed");
+                    break;
+                }
                 case "cash":
                     if (!int.TryParse(a, NumberStyles.Integer, CultureInfo.InvariantCulture, out int n)) { Say("cash needs a whole number"); break; }
                     S1API.Money.Money.ChangeCashBalance(n, true, false);
@@ -57,7 +67,7 @@ namespace MarcosBodyshop.Debug
                     Say(Builtin.Nitro.Describe());
                     break;
                 default:
-                    Say("bodyshop nitro [seconds] | open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | cash N");
+                    Say("bodyshop nitro [seconds] | open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | radio x y z yaw | cash N");
                     break;
             }
         }
