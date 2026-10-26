@@ -14,7 +14,7 @@
 
 ## What it does
 
-Park any car in Marco's shop at the gas station and pick **Modify my vehicle** in his dialogue. A menu opens
+Park any car in Marco's shop at the gas station and pick **Pimp my ride** in his dialogue. A menu opens
 over the car, the camera moves to the part you look at, and the car shows each choice before you pay.
 
 - **Paint** - the game's colours, plus metallic, matte and chrome.
