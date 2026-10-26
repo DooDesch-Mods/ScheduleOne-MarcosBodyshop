@@ -162,7 +162,8 @@ namespace MarcosBodyshop.Shop
             _musicLoop = null;
         }
 
-        private static void Mixer(AudioSource src, bool music)
+        /// <summary>Routes a source into the game's music or game mixer channel, where the game's own sounds of that kind play.</summary>
+        internal static void Mixer(AudioSource src, bool music)
         {
             var am = Singleton<AudioManager>.InstanceExists ? Singleton<AudioManager>.Instance : null;
             var group = am == null ? null : music ? am.MusicMixer : am.MainGameMixer;
