@@ -8,6 +8,8 @@
 ![Status](https://img.shields.io/badge/status-beta-yellow)
 [![Polyfill](https://polyfill.doomods.com/badge/marcosbodyshop.svg)](https://polyfill.doomods.com/mod/marcosbodyshop)
 
+[![MLVScan MarcosBodyshop.dll](https://mlvscan.com/attestations/att_Fyu-XZ0sCuXxnlK3W-NDdk2Z/badge.svg)](https://mlvscan.com/attestations/att_Fyu-XZ0sCuXxnlK3W-NDdk2Z)
+
 ![Marco's Bodyshop](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/main/docs/img/header.jpg)
 
 > Marco does more than paint now.
