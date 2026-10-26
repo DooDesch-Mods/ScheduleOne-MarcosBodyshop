@@ -375,10 +375,6 @@ namespace MarcosBodyshop.Shop
             pc.OverrideFOV(fov, instant ? 0f : CameraLerp);
         }
 
-        /// <summary>
-        /// A shot whose eye stands behind a wall or inside a building (a vehicle parked with that side to it) goes to the
-        /// vehicle's other side, mirrored, when that side is free. Whatever still stands in the view fades (<see cref="Cutaway"/>).
-        /// </summary>
         // The menu covers the left of the screen (596 of 1920 px at 1080 lines, it scales with the height). The camera
         // turns left by this many degrees so the target sits in the middle of the free part.
         private static float BesideMenu(float fov)
@@ -391,17 +387,21 @@ namespace MarcosBodyshop.Shop
             return Mathf.Atan(menu * halfTan) * Mathf.Rad2Deg;
         }
 
+        /// <summary>
+        /// A shot whose eye stands behind a wall or inside a building (a vehicle parked with that side to it) goes to the
+        /// vehicle's other side, mirrored, when that side is free. Whatever still stands in the view fades (<see cref="Cutaway"/>).
+        /// </summary>
         internal static CameraShot FreeView(LandVehicle v, CameraShot s)
         {
             try
             {
-                if (!Blocked(v, s.Target, s.Eye, out float free)) return s;
+                if (!Blocked(v, s.Target, s.Eye, out float free, out string by)) return s;
                 var t = v.transform;
                 Vector3 e = t.InverseTransformPoint(s.Eye), g = t.InverseTransformPoint(s.Target);
                 var mirrored = new CameraShot(t.TransformPoint(new Vector3(-e.x, e.y, e.z)), t.TransformPoint(new Vector3(-g.x, g.y, g.z)), s.Fov);
-                if (!Blocked(v, mirrored.Target, mirrored.Eye, out _))
+                if (!Blocked(v, mirrored.Target, mirrored.Eye, out _, out _))
                 {
-                    Core.Log.Msg("[Menu] camera view blocked " + free.ToString("F1", CultureInfo.InvariantCulture) + " m out - shown from the other side.");
+                    Core.Log.Msg("[Menu] camera view blocked " + free.ToString("F1", CultureInfo.InvariantCulture) + " m out by '" + by + "' - shown from the other side.");
                     return mirrored;
                 }
                 Core.Log.Msg("[Menu] camera view blocked on both sides - the shot stays, the blockers fade.");
@@ -410,22 +410,34 @@ namespace MarcosBodyshop.Shop
             catch (Exception e) { Core.Log.Warning("[Menu] checking the camera's view failed - the shot stays as given: " + e.Message); return s; }
         }
 
-        // Free distance from the target towards the eye; the vehicle itself and the local player do not count.
-        private static bool Blocked(LandVehicle v, Vector3 from, Vector3 to, out float free)
+        // Free distance from the target towards the eye; the vehicle itself, the local player and whatever is inside
+        // the vehicle's box (a crew member in an RV, cargo) do not count.
+        private static bool Blocked(LandVehicle v, Vector3 from, Vector3 to, out float free, out string by)
         {
             Vector3 d = to - from;
             float len = d.magnitude;
             free = len;
+            by = "";
             if (len < 0.01f) return false;
             var player = Player.Local != null ? Player.Local.transform : null;
+            var box = LocalBox(v);
             foreach (var hit in Physics.RaycastAll(from, d / len, len, ~0, QueryTriggerInteraction.Ignore))
             {
                 var c = hit.collider;
                 if (c == null || c.transform.IsChildOf(v.transform)) continue;
                 if (player != null && c.transform.IsChildOf(player)) continue;
-                if (hit.distance < free) free = hit.distance;
+                if (box.Contains(v.transform.InverseTransformPoint(hit.point))) continue;
+                if (hit.distance < free) { free = hit.distance; by = Path(c.transform); }
             }
             return free < len;
+        }
+
+        // "grandparent/parent/name", for a log line.
+        private static string Path(Transform t)
+        {
+            string s = t.name;
+            for (int i = 0; i < 2 && t.parent != null; i++) { t = t.parent; s = t.name + "/" + s; }
+            return s;
         }
 
         /// <summary>Front left, a little above, looking at the middle of the vehicle.</summary>
