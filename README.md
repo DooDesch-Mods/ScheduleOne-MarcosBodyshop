@@ -24,7 +24,7 @@ over the car, the camera moves to the part you look at, and the car shows each c
 - **Horn** - clown horn, rubber duck, freight train, fanfare, La Cucaracha and a bicycle horn. Hold G to honk.
 - **Engine, Brakes, Transmission, Suspension, Steering, Weight** - two to four stages each, with bars for speed,
   acceleration, braking and handling.
-- **Nitro** - hold Left Ctrl for a boost and blue flames at the exhaust. The tank refills by itself.
+- **Nitro** - hold Left Ctrl for a boost with a nitrous rush and blue flames at the exhaust. The tank refills by itself.
 - **Turbo** and **Drift Tyres**.
 
 Stock is always free. A part you replace is not refunded.
