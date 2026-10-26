@@ -1,0 +1,15 @@
+{
+  "name": "MarcosBodyshop",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop",
+  "description": "Marco's repaint shop becomes a tuning garage for every car: paint, lights and looks, and engine, brakes, transmission, suspension, turbo and tyre upgrades, picked from a menu over the car.",
+  "dependencies": [
+    "LavaGang-MelonLoader-0.7.3",
+    "ifBars-S1API_Forked-3.2.1",
+    "DooDesch-Chassis-1.7.0",
+    "DooDesch-Sideload-1.35.0"
+  ],
+  "contributors": [
+    "DooDesch"
+  ]
+}
