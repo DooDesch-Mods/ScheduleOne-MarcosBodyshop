@@ -12,9 +12,9 @@ namespace MarcosBodyshop.Net
     /// buyer paid, the host applies, the buyer hears whether the money is kept).
     ///
     /// Requests: <c>req.open garage player vehicle</c>, <c>req.close garage player</c>,
-    /// <c>req.buy garage vehicle category entry ticket paid player</c>.
+    /// <c>req.buy garage vehicle category entry ticket paid player</c>, <c>req.nitro vehicle 1|0</c>.
     /// State: <c>open garage player vehicle ok reason</c>, <c>lock garage holder</c>,
-    /// <c>settle ticket kept garage vehicle category entry reason</c>.
+    /// <c>settle ticket kept garage vehicle category entry reason</c>, <c>nitro vehicle 1|0</c>.
     /// </summary>
     internal static class Sync
     {
@@ -29,6 +29,7 @@ namespace MarcosBodyshop.Net
                 case "req.open": HostOpen(m.Arg(0), m.Arg(1), I(m.Arg(2))); break;
                 case "req.close": HostClose(m.Arg(0), m.Arg(1), "closed the menu"); break;
                 case "req.buy": HostBuy(m.Arg(0), I(m.Arg(1)), m.Arg(2), m.Arg(3), I(m.Arg(4)), I(m.Arg(5)), m.Arg(6)); break;
+                case "req.nitro": Builtin.Nitro.HostNitro(I(m.Arg(0)), m.Arg(1) == "1"); break;
                 default: Core.Log.Warning("[Net] unknown request " + m + " - ignored."); break;
             }
         }
@@ -47,6 +48,7 @@ namespace MarcosBodyshop.Net
                 case "settle":
                     Payment.Settle(I(m.Arg(0)), m.Arg(1) == "1", m.Arg(2), I(m.Arg(3)), m.Arg(4), m.Arg(5), m.Arg(6));
                     break;
+                case "nitro": Builtin.Flames.OnNitro(I(m.Arg(0)), m.Arg(1) == "1"); break;
                 default: Core.Log.Warning("[Net] unknown state " + m + " - ignored."); break;
             }
         }

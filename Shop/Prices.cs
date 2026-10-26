@@ -45,7 +45,9 @@ namespace MarcosBodyshop.Shop
         {
             s = s ?? new TuningStats();
             float handling = s.Grip * Mathf.Sqrt(Mathf.Max(0.01f, s.Spring * s.Damper)) * Mathf.Sqrt(Mathf.Max(0.01f, s.Steer));
-            return new[] { Bar(s.Gearing, 1.5f), Bar(s.Torque, 1.2f), Bar(s.Brake, 0.9f), Bar(handling, 1.2f) };
+            // A lighter car pulls away quicker, as more torque would.
+            float pull = s.Torque / Mathf.Max(0.1f, s.Mass);
+            return new[] { Bar(s.Gearing, 1.5f), Bar(pull, 1.2f), Bar(s.Brake, 0.9f), Bar(handling, 1.2f) };
         }
 
         private static float Bar(float factor, float weight) => Mathf.Clamp(0.45f + (factor - 1f) * weight, 0.05f, 1f);

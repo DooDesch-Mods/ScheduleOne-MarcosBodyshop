@@ -21,19 +21,29 @@ namespace MarcosBodyshop.Builtin
             ("suspension", "Suspension", "susp", 600, "Suspension upgrade."),
             ("turbo", "Turbo", "turbo", 700, "Turbo upgrade."),
             ("tyres", "Tyres", "tyres", 800, "Tyre upgrade."),
+            ("steering", "Steering", "steer", 850, "Steering upgrade."),
+            ("weight", "Weight", "weight", 900, "Less weight, quicker off the line."),
+            ("booster", "Nitro", "nitro", 950, null),
         };
 
         internal static void Register()
         {
+            // Stages Chassis does not bring itself. No model and no fits: they go on every car.
+            Stage("bodyshop_steering_1", "steering", "Quick Steering Rack", 750, new TuningStats { Steer = 1.15f });
+            Stage("bodyshop_steering_2", "steering", "Race Steering Rack", 1750, new TuningStats { Steer = 1.3f });
+            Stage("bodyshop_weight_1", "weight", "Lightweight Panels", 1000, new TuningStats { Mass = 0.9f });
+            Stage("bodyshop_weight_2", "weight", "Carbon Body", 2500, new TuningStats { Mass = 0.8f });
+            Nitro.Register();
+
             foreach (var s in Slots)
             {
                 string slot = s.slot, blurb = s.blurb;
                 BodyshopApi.RegisterCategory(new BodyshopCategory
                 {
                     Id = slot, Label = s.label, Icon = s.icon, Order = s.order,
-                    Camera = slot == "engine" || slot == "turbo" ? Shots.Front : slot == "transmission" ? Shots.Rear : Shots.Wheel,
+                    Camera = slot == "engine" || slot == "turbo" ? Shots.Front : slot == "transmission" || slot == "booster" ? Shots.Rear : slot == "weight" ? Shots.Side : Shots.Wheel,
                     AppliesTo = v => ChassisApi.TuningParts(v, slot).Count > 0,
-                    Note = v => ChassisApi.TuningPartById(ChassisApi.InstalledPart(v, slot) ?? "")?.Label ?? (slot == "turbo" ? "None" : "Stock"),
+                    Note = v => ChassisApi.TuningPartById(ChassisApi.InstalledPart(v, slot) ?? "")?.Label ?? (Empty(slot) ? "None" : "Stock"),
                     Entries = v => Entries(v, slot, blurb),
                 });
             }
@@ -44,7 +54,7 @@ namespace MarcosBodyshop.Builtin
             yield return new BodyshopEntry
             {
                 Id = "stock",
-                Label = slot == "turbo" ? "None" : "Stock",
+                Label = Empty(slot) ? "None" : "Stock",
                 Text = "Back to stock. Free, no refund.",
                 Price = 0,
                 Stats = new TuningStats(),
@@ -62,7 +72,7 @@ namespace MarcosBodyshop.Builtin
                 {
                     Id = id,
                     Label = p.Label ?? id,
-                    Text = blurb,
+                    Text = blurb ?? "Hold " + KeyName(Prefs.NitroKey) + " for nitro. The tank refills by itself.",
                     Price = Prefs.Price(id, p.Price),
                     Stats = p.Stats ?? new TuningStats(),
                     Installed = x => string.Equals(ChassisApi.InstalledPart(x, slot), id, StringComparison.OrdinalIgnoreCase),
@@ -70,6 +80,24 @@ namespace MarcosBodyshop.Builtin
                     EndPreview = x => ChassisApi.EndPreview(x, "part." + slot),
                     Apply = x => ChassisApi.InstallPart(x, id) ? null : "The part does not fit.",
                 };
+            }
+        }
+
+        /// <summary>Slots a car has nothing in by default.</summary>
+        private static bool Empty(string slot) => slot == "turbo" || slot == "booster";
+
+        private static void Stage(string id, string slot, string label, int price, TuningStats stats)
+            => ChassisApi.RegisterTuningPart(new TuningPart { Id = id, Slot = slot, Label = label, Price = price, Stats = stats });
+
+        internal static string KeyName(UnityEngine.KeyCode k)
+        {
+            switch (k)
+            {
+                case UnityEngine.KeyCode.LeftControl: return "Left Ctrl";
+                case UnityEngine.KeyCode.RightControl: return "Right Ctrl";
+                case UnityEngine.KeyCode.LeftShift: return "Left Shift";
+                case UnityEngine.KeyCode.LeftAlt: return "Left Alt";
+                default: return k.ToString();
             }
         }
     }

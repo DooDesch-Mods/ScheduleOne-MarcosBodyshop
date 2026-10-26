@@ -27,6 +27,7 @@ namespace MarcosBodyshop
             Builtin.MarcoGarage.Register();
             Builtin.PaintShop.Register();
             Builtin.LooksShop.Register();
+            Builtin.HornShop.Register();
             Builtin.PerformanceShop.Register();
 
             // No PatchAll here: MelonLoader applies the [HarmonyPatch] classes of a MelonMod itself.
@@ -41,7 +42,13 @@ namespace MarcosBodyshop
             if (!_inWorld) return;
             Shop.Session.Tick();
             Net.Sync.Tick();
+            Builtin.Nitro.Tick();
             Builtin.MarcoGarage.Tick();
+        }
+
+        public override void OnLateUpdate()
+        {
+            if (_inWorld) Builtin.Flames.LateTick();
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
@@ -60,6 +67,7 @@ namespace MarcosBodyshop
             Builtin.MarcoGarage.WorldLeft();
             Net.Sync.Reset();
             Net.Payment.Reset();
+            Builtin.Nitro.Reset();
             Log.Msg("[Core] left the world (" + sceneName + ").");
         }
     }
