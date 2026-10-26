@@ -68,6 +68,7 @@ namespace MarcosBodyshop
             Net.Sync.Reset();
             Net.Payment.Reset();
             Builtin.Nitro.Reset();
+            Shop.Sounds.Reset();
             Log.Msg("[Core] left the world (" + sceneName + ").");
         }
     }

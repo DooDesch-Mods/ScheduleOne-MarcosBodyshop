@@ -17,8 +17,8 @@ The glyphs of the garage menu (`Assets/bodyshop/i-*.png`) are Lucide icons, rend
 
 ## Sounds
 
-The horns (`Assets/sounds/*.pcm`) are recordings in the public domain, each cut to one honk, normalised and stored
-as 16-bit mono PCM at 22050 Hz. All are released under Creative Commons Zero (CC0 1.0). Credit is not required and
+The horns and the install sound (`Assets/sounds/*.pcm`) are recordings in the public domain, each cut to one honk
+or one burst, normalised and stored as 16-bit mono PCM at 22050 Hz. All are released under Creative Commons Zero (CC0 1.0). Credit is not required and
 is given anyway.
 
 | File | Recording | Author | Source |
@@ -29,6 +29,10 @@ is given anyway.
 | `fanfare.pcm` | Real Trumpet Fanfare 1 | qubodup | https://freesound.org/people/qubodup/sounds/855457/ |
 | `cucaracha.pcm` | La cucaracha car Horn | csnmedia | https://freesound.org/people/csnmedia/sounds/388276/ |
 | `bicycle.pcm` | bicycle-horn-1.wav | AntumDeluge | https://opengameart.org/content/bicycle-horn |
+| `fit.pcm` | Air Impact Wrench | sevenbsb | https://freesound.org/people/sevenbsb/sounds/349398/ |
+
+The respray sound and the workshop music are the game's own clips, played from the running game; the mod ships
+none of them.
 
 ## License texts
 

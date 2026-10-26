@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
-using Il2CppScheduleOne.Building;
 using Il2CppScheduleOne.DevUtilities;
-using Il2CppScheduleOne.ItemFramework;
 using Il2CppScheduleOne.Money;
 using Il2CppScheduleOne.UI;
 using MelonLoader;
@@ -10,7 +8,7 @@ using UnityEngine;
 
 namespace MarcosBodyshop.Shop
 {
-    /// <summary>The fade around opening and buying, the workshop sound, and the game's notification line.</summary>
+    /// <summary>The fade around opening and buying, the install sound, and the game's notification line.</summary>
     internal static class Effects
     {
         internal static void FadeOut(float seconds)
@@ -25,31 +23,18 @@ namespace MarcosBodyshop.Shop
             catch (Exception e) { Core.Log.Warning("[Fx] the fade back failed: " + e.Message); }
         }
 
-        /// <summary>After a purchase: a short fade with the clank of the game's metal build sound and the cash sound.</summary>
-        internal static void Workshop(Vector3 at) => MelonCoroutines.Start(WorkshopRoutine(at));
+        /// <summary>After a purchase: a short fade with the install sound (spray or air wrench) and the cash sound.</summary>
+        internal static void Workshop(Vector3 at, string category, string entry) => MelonCoroutines.Start(WorkshopRoutine(at, category, entry));
 
-        private static IEnumerator WorkshopRoutine(Vector3 at)
+        private static IEnumerator WorkshopRoutine(Vector3 at, string category, string entry)
         {
             FadeOut(0.2f);
             yield return new WaitForSecondsRealtime(0.2f);
-            Clank(at);
-            yield return new WaitForSecondsRealtime(0.35f);
-            Clank(at);
+            Sounds.Fitted(category, entry, at);
+            yield return new WaitForSecondsRealtime(0.7f);
             Cash();
             yield return new WaitForSecondsRealtime(0.35f);
             FadeIn(0.35f);
-        }
-
-        private static void Clank(Vector3 at)
-        {
-            try
-            {
-                var bm = NetworkSingleton<BuildManager>.Instance;
-                if (bm == null) { Core.Log.Warning("[Fx] no BuildManager - no workshop sound."); return; }
-                var cam = Camera.main;
-                bm.PlayBuildSound(BuildableItemDefinition.EBuildSoundType.Metal, cam != null ? cam.transform.position : at);
-            }
-            catch (Exception e) { Core.Log.Warning("[Fx] the workshop sound failed: " + e.Message); }
         }
 
         private static void Cash()

@@ -195,6 +195,7 @@ namespace MarcosBodyshop.Shop
             _closeRequested = false;
             _shownCash = int.MinValue;
             MoveCamera(null, true);
+            Sounds.MusicOn();
             Core.Log.Msg("[Menu] open: garage '" + garage + "', bay '" + bay.Id + "', " + v.VehicleName + " (net " + vehicleId + "), box " + LocalBox(v).size.ToString("F1") + ".");
             BodyshopApi.RaiseMenu(v, true);
         }
@@ -333,7 +334,7 @@ namespace MarcosBodyshop.Shop
             string label = e?.Label ?? entry;
             bool fitted = e == null || !e.Toggle || Prices.Installed(e, v);
             if (_open && _previewed != null && _previewed == e) _previewed = null;
-            Effects.Workshop(v != null ? v.transform.position : Vector3.zero);
+            Effects.Workshop(v != null ? v.transform.position : Vector3.zero, category, entry);
             if (_open) _surface?.Emit("flash", label + (e != null && e.Toggle ? (fitted ? " fitted." : " removed.") : " installed.") + (amount > 0 ? " -$" + amount.ToString("N0", CultureInfo.InvariantCulture) : ""));
             _refreshWanted = true;
             if (v != null) BodyshopApi.RaisePurchased(v, category, entry);
@@ -553,10 +554,13 @@ namespace MarcosBodyshop.Shop
             var kb = Keyboard.current;
             if (kb != null)
             {
-                // W and S browse like the arrows, Space buys like Enter. Keys by position: physical W/S on every layout.
+                // W and S browse like the arrows, Space and D buy like Enter, A goes back like Escape (GTA style). Keys by
+                // position: physical W/A/S/D on every layout.
                 if (kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame) _surface?.Emit("key", "up");
                 if (kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame) _surface?.Emit("key", "down");
                 if (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame) _surface?.Emit("key", "enter");
+                if (kb.dKey.wasPressedThisFrame) _surface?.Emit("key", "enter");
+                if (kb.aKey.wasPressedThisFrame) _surface?.Emit("key", "back");
             }
 
             if (_refreshWanted) { _refreshWanted = false; _surface?.Emit("refresh", ""); }
@@ -575,7 +579,7 @@ namespace MarcosBodyshop.Shop
             bool was = _open;
             var v = _vehicle;
             string garage = _garage;
-            if (was) LeaveCategory();
+            if (was) { LeaveCategory(); Sounds.MusicOff(); }
             Cutaway.Clear();
             _open = false;
             _closeRequested = false;

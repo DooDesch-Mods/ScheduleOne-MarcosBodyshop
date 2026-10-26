@@ -57,7 +57,9 @@ namespace MarcosBodyshop.Builtin
                     if (f.gameObject.activeSelf != on) f.gameObject.SetActive(on);
                     if (!on) continue;
                     float len = UnityEngine.Random.Range(0.75f, 1.25f), wide = UnityEngine.Random.Range(0.9f, 1.1f);
-                    f.localScale = new Vector3(wide, wide, len);
+                    // Sizes are metres: the scale of the car root is divided out.
+                    float unit = f.parent != null && f.parent.lossyScale.x > 0.0001f ? 1f / f.parent.lossyScale.x : 1f;
+                    f.localScale = new Vector3(wide, wide, len) * unit;
                     var l = f.GetComponentInChildren<Light>();
                     if (l != null) l.intensity = UnityEngine.Random.Range(2.5f, 5f);
                 }
@@ -75,7 +77,7 @@ namespace MarcosBodyshop.Builtin
             var fx = lv.GetComponentInChildren<VehicleFX>(true);
             if (fx != null && fx.exhaustFX != null)
                 foreach (var ps in fx.exhaustFX)
-                    if (ps != null) list.Add(Flame(lv, ps.transform, Vector3.zero));
+                    if (ps != null) list.Add(Flame(lv, lv.transform, lv.transform.InverseTransformPoint(ps.transform.position)));
             if (list.Count == 0)
             {
                 var b = Shop.Session.LocalBox(lv);
@@ -83,10 +85,14 @@ namespace MarcosBodyshop.Builtin
                 list.Add(Flame(lv, lv.transform, lv.transform.InverseTransformPoint(at)));
                 Core.Log.Warning("[Flames] net " + id + " (" + lv.VehicleName + ") has no exhaust emitters - one flame at the rear underside.");
             }
-            else Core.Log.Msg("[Flames] net " + id + " (" + lv.VehicleName + "): " + list.Count + " flame(s) at the exhaust.");
+            else Core.Log.Msg("[Flames] net " + id + " (" + lv.VehicleName + "): " + list.Count + " flame(s) at the exhaust (car scale " + lv.transform.lossyScale.x.ToString("0.###") + ").");
             return list;
         }
 
+        /// <summary>
+        /// A flame under the car root at a local point. Not under the exhaust emitter: some cars scale their emitters up,
+        /// which blew the cone up to tens of metres around the camera.
+        /// </summary>
         private static Transform Flame(LandVehicle lv, Transform parent, Vector3 local)
         {
             var flame = new GameObject(FlameName).transform;

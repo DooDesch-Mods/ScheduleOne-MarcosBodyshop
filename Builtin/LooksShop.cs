@@ -24,7 +24,7 @@ namespace MarcosBodyshop.Builtin
 
         private static readonly (string name, string rgba)[] Tints =
         {
-            ("Light Smoke", "10121466"), ("Dark Smoke", "0A0B0DA8"), ("Limo", "050506E0"),
+            ("Light Smoke", "0E1012CC"), ("Dark Smoke", "08090BE6"), ("Limo", "030304F8"),
         };
 
         internal static void Register()
@@ -40,8 +40,8 @@ namespace MarcosBodyshop.Builtin
 
         private static IEnumerable<BodyshopEntry> Entries(LandVehicle v)
         {
-            yield return Stock("Xenon Headlights", "xenon");
-            foreach (var l in Lights) yield return Key("Xenon Headlights", "xenon", l.name, l.hex, l.hex, "Coloured headlight glow.", Shots.Front);
+            yield return LightsOnWhilePicked(Stock("Xenon Headlights", "xenon"));
+            foreach (var l in Lights) yield return LightsOnWhilePicked(Key("Xenon Headlights", "xenon", l.name, l.hex, l.hex, "Coloured headlight glow.", Shots.Front));
             yield return Stock("Underglow", "neon");
             foreach (var l in Lights) yield return Neon(l.name, l.hex);
             foreach (var s in Sides) yield return NeonSides(s.name, s.sides, s.text);
@@ -51,6 +51,42 @@ namespace MarcosBodyshop.Builtin
             foreach (var r in Rims) yield return Key("Rim Colour", "rims", r.name, r.hex, r.hex + "," + TuningFinish.Metal, "Painted rims.", Shots.Wheel);
             yield return Stock("Tyre Smoke", "smoke");
             foreach (var l in Lights) yield return Key("Tyre Smoke", "smoke", l.name, l.hex, l.hex, "Coloured drift smoke.", Shots.Wheel);
+        }
+
+        /// <summary>The headlights' state before a xenon preview switched them on; null while no preview holds them.</summary>
+        private static bool? _lightsWere;
+
+        /// <summary>A xenon entry switches the headlights on while it is picked, so the colour shows, and back after.</summary>
+        private static BodyshopEntry LightsOnWhilePicked(BodyshopEntry e)
+        {
+            var preview = e.Preview;
+            var end = e.EndPreview;
+            e.Preview = x => { preview?.Invoke(x); HeadlightsOn(x); };
+            e.EndPreview = x => { end?.Invoke(x); HeadlightsBack(x); };
+            return e;
+        }
+
+        private static void HeadlightsOn(LandVehicle v)
+        {
+            var lights = v != null ? v.lights : null;
+            if (lights == null) { Core.Log.Warning("[Looks] the vehicle has no headlights - the xenon preview stays dark."); return; }
+            try
+            {
+                if (_lightsWere == null) _lightsWere = lights.HeadlightsOn;
+                if (!lights.HeadlightsOn) lights.HeadlightsOn = true;
+            }
+            catch (Exception e) { Core.Log.Warning("[Looks] switching the headlights on for the preview failed: " + e.Message); }
+        }
+
+        private static void HeadlightsBack(LandVehicle v)
+        {
+            if (_lightsWere == null) return;
+            bool was = _lightsWere.Value;
+            _lightsWere = null;
+            var lights = v != null ? v.lights : null;
+            if (lights == null) { Core.Log.Warning("[Looks] the vehicle is gone - its headlights stay as the preview left them."); return; }
+            try { if (lights.HeadlightsOn != was) lights.HeadlightsOn = was; }
+            catch (Exception e) { Core.Log.Warning("[Looks] switching the headlights back after the preview failed: " + e.Message); }
         }
 
         private static readonly (string name, string sides, string text)[] Sides =
