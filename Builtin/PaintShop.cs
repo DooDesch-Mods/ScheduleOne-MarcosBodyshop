@@ -12,7 +12,8 @@ namespace MarcosBodyshop.Builtin
 {
     /// <summary>
     /// The Paint category: the game's factory colours (the vanilla repaint, $100) and Chassis paint in metallic,
-    /// matte and chrome. A factory colour clears the custom paint, as vanilla's repaint does.
+    /// matte and chrome. A factory colour clears the custom paint, as vanilla's repaint does. The Second Paint category
+    /// offers the same Chassis paints as "paint2", for a vehicle whose model names second paint slots (stripes, trim).
     /// </summary>
     internal static class PaintShop
     {
@@ -38,6 +39,31 @@ namespace MarcosBodyshop.Builtin
                 Note = NoteOf,
                 Entries = Entries,
             });
+            BodyshopApi.RegisterCategory(new BodyshopCategory
+            {
+                Id = "paint2", Label = "Second Paint", Icon = "paint", Order = 110,
+                AppliesTo = ChassisApi.HasSecondPaint,
+                Camera = Shots.Side,
+                Note = Note2Of,
+                Entries = Entries2,
+            });
+        }
+
+        private static string Note2Of(LandVehicle v)
+        {
+            if (ChassisApi.GetTuning(v, "paint2") == null) return "Stock";
+            foreach (var e in Entries2(v)) if (e.Installed(v)) return e.Label;
+            return "Custom";
+        }
+
+        private static IEnumerable<BodyshopEntry> Entries2(LandVehicle v)
+        {
+            foreach (var p in Palette) yield return Custom("Metallic", p.name, p.hex, TuningFinish.Metallic, "paint_metallic", true);
+            yield return Stock("Metallic", true);
+            foreach (var p in Palette) yield return Custom("Matte", p.name, p.hex, TuningFinish.Matte, "paint_matte", true);
+            yield return Stock("Matte", true);
+            foreach (var p in Chrome) yield return Custom("Chrome", p.name, p.hex, TuningFinish.Chrome, "paint_chrome", true);
+            yield return Stock("Chrome", true);
         }
 
         private static string NoteOf(LandVehicle v)
@@ -48,12 +74,13 @@ namespace MarcosBodyshop.Builtin
                 foreach (var e in Entries(v)) if (e.Group != "Factory" && e.Installed(v)) return e.Label;
                 return "Custom";
             }
-            return FactoryName(v.OwnedColor);
+            return ChassisApi.HasOwnPaintTargets(v) ? "Stock" : FactoryName(v.OwnedColor);
         }
 
         private static IEnumerable<BodyshopEntry> Entries(LandVehicle v)
         {
-            foreach (var e in Factory()) yield return e;
+            // A body of a mod's own takes no game colour: the game paints only the vanilla body.
+            if (!ChassisApi.HasOwnPaintTargets(v)) foreach (var e in Factory()) yield return e;
             foreach (var p in Palette) yield return Custom("Metallic", p.name, p.hex, TuningFinish.Metallic, "paint_metallic");
             yield return Stock("Metallic");
             foreach (var p in Palette) yield return Custom("Matte", p.name, p.hex, TuningFinish.Matte, "paint_matte");
@@ -114,8 +141,9 @@ namespace MarcosBodyshop.Builtin
 
         // ---- Chassis paint ----------------------------------------------------------------------------------------
 
-        private static BodyshopEntry Custom(string group, string name, string hex, string finish, string priceId)
+        private static BodyshopEntry Custom(string group, string name, string hex, string finish, string priceId, bool second = false)
         {
+            string key = second ? "paint2" : "paint";
             string value = hex + "," + finish;
             ColorUtility.TryParseHtmlString("#" + hex, out Color colour);
             return new BodyshopEntry
@@ -126,24 +154,28 @@ namespace MarcosBodyshop.Builtin
                 Text = group + " paint.",
                 Price = Prefs.Price(priceId, 250),
                 Swatch = "#" + hex,
-                Installed = x => string.Equals(ChassisApi.GetTuning(x, "paint"), value, StringComparison.OrdinalIgnoreCase),
-                Preview = x => ChassisApi.PreviewTuning(x, "paint", value),
-                EndPreview = x => ChassisApi.EndPreview(x, "paint"),
-                Apply = x => ChassisApi.SetPaint(x, colour, finish) ? null : "The paint was refused.",
+                Installed = x => string.Equals(ChassisApi.GetTuning(x, key), value, StringComparison.OrdinalIgnoreCase),
+                Preview = x => ChassisApi.PreviewTuning(x, key, value),
+                EndPreview = x => ChassisApi.EndPreview(x, key),
+                Apply = x => ChassisApi.SetPaint(x, colour, finish, second) ? null : "The paint was refused.",
             };
         }
 
-        private static BodyshopEntry Stock(string group) => new BodyshopEntry
+        private static BodyshopEntry Stock(string group, bool second = false)
         {
-            Id = group.ToLowerInvariant() + "_stock",
-            Group = group,
-            Label = "Factory Paint",
-            Text = "Back to the factory colour. Free, no refund.",
-            Price = 0,
-            Installed = x => ChassisApi.GetTuning(x, "paint") == null,
-            Preview = x => ChassisApi.PreviewTuning(x, "paint", ""),
-            EndPreview = x => ChassisApi.EndPreview(x, "paint"),
-            Apply = x => ChassisApi.ClearPaint(x) ? null : "The paint was refused.",
-        };
+            string key = second ? "paint2" : "paint";
+            return new BodyshopEntry
+            {
+                Id = group.ToLowerInvariant() + "_stock",
+                Group = group,
+                Label = "Factory Paint",
+                Text = "Back to the factory colour. Free, no refund.",
+                Price = 0,
+                Installed = x => ChassisApi.GetTuning(x, key) == null,
+                Preview = x => ChassisApi.PreviewTuning(x, key, ""),
+                EndPreview = x => ChassisApi.EndPreview(x, key),
+                Apply = x => ChassisApi.ClearPaint(x, second) ? null : "The paint was refused.",
+            };
+        }
     }
 }

@@ -15,6 +15,7 @@ Park any car in Marco's shop at the gas station and pick **Modify my vehicle** i
 over the car, the camera moves to the part you look at, and the car shows each choice before you pay.
 
 - **Paint** - the game's colours, plus metallic, matte and chrome.
+- **Second Paint** - stripes and trim in their own colour, on vehicles whose model has them (the RV of RV Repair Van).
 - **Lights & Looks** - xenon headlights, underglow, window tint, rim colour and tyre smoke, each in colours.
 - **Engine, Brakes, Transmission, Suspension** - three or four stages each, with bars for speed,
   acceleration, braking and handling.
@@ -22,9 +23,9 @@ over the car, the camera moves to the part you look at, and the car shows each c
 
 Stock is always free. A part you replace is not refunded.
 
-A vehicle too big for the hall parks on the yellow marked bay in front of it.
+A vehicle too big for the hall parks on the lot in front of it.
 
-Use the arrow keys and Enter, or the mouse. Escape goes back.
+Browse with W/S or the arrow keys, buy with Space or Enter, or use the mouse. Escape goes back.
 
 ## Settings
 

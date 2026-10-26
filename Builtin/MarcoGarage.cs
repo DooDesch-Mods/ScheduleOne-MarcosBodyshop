@@ -17,7 +17,7 @@ namespace MarcosBodyshop.Builtin
     /// <summary>
     /// Marco's garage at the gas station. The hall bay is vanilla's: the vehicle the shop's detector sees, parked on
     /// the repaint spot, seen from the repaint camera. The yard bay in front of the hall is for vehicles too big for
-    /// the hall (the hall's entrance is 3.6 x 4.0 m); it is painted on the ground.
+    /// the hall (the hall's entrance is 3.6 x 4.0 m): the lot in front of it, without markings, seen from the vehicle's default shot.
     ///
     /// Marco's "I'd like to repaint my vehicle" becomes "Modify my vehicle" and opens the bodyshop instead of the
     /// vanilla paint menu. Its check (vehicle parked, nobody inside) now looks at both bays.
@@ -27,10 +27,11 @@ namespace MarcosBodyshop.Builtin
         private const string VanillaChoice = "I'd like to repaint my vehicle";
         private const string ChoiceText = "Modify my vehicle";
 
-        // The yard in front of the hall, measured in game: the RV parks here with its nose to the road.
-        internal static readonly Vector3 YardCenter = new Vector3(8.5f, 1.6f, -16.8f);
+        // The lot in front of the hall, measured in game: from the hall's wall over the parking stalls to the
+        // pavement, and from the hall's corner to the pumps. A vehicle whose centre stands on it is in the bay.
+        internal static readonly Vector3 YardCenter = new Vector3(10.05f, 1.6f, -18.7f);
         internal const float YardYaw = 75f;
-        internal static readonly Vector3 YardSize = new Vector3(5f, 5f, 14f);
+        internal static readonly Vector3 YardSize = new Vector3(9.5f, 5f, 16f);
 
         private static Marco _marco;
         private static bool _choiceReplaced;
@@ -50,8 +51,6 @@ namespace MarcosBodyshop.Builtin
             {
                 Id = "yard",
                 Center = YardCenter, Size = YardSize, Yaw = YardYaw,
-                Marked = true,
-                Camera = v => new CameraShot(new Vector3(15.5f, 2.8f, -25.5f), Session.Bounds(v).center, 60f),
             });
             BodyshopApi.RegisterGarage(g);
             BodyshopApi.Purchased += (v, cat, entry) =>

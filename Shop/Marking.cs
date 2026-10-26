@@ -6,8 +6,9 @@ using UnityEngine;
 namespace MarcosBodyshop.Shop
 {
     /// <summary>
-    /// The painted outline of each bay with <see cref="BodyshopBay.Marked"/>: four flat strips on the ground, no
-    /// colliders. Built when the world is loaded and rebuilt when a bay is added.
+    /// The painted outline of each bay with <see cref="BodyshopBay.Marked"/>, or of every bay while <see cref="ShowAll"/>
+    /// is on (the debug console): four flat strips on the ground, no colliders. Built when the world is loaded and
+    /// rebuilt when a bay is added.
     /// </summary>
     internal static class Marking
     {
@@ -15,6 +16,9 @@ namespace MarcosBodyshop.Shop
         private static readonly List<GameObject> _lines = new List<GameObject>();
         private static bool _inWorld;
         private static Material _material;
+
+        /// <summary>Outline every bay with a box, marked or not.</summary>
+        internal static bool ShowAll;
 
         internal static void WorldLoaded() { _inWorld = true; Refresh(); }
 
@@ -32,11 +36,12 @@ namespace MarcosBodyshop.Shop
             foreach (var g in Registry.Garages)
                 foreach (var b in g.Bays)
                 {
-                    if (!b.Marked) continue;
+                    // A bay that finds its vehicle itself (the vanilla hall) has no box to outline.
+                    if (!b.Marked && (!ShowAll || b.FindVehicle != null)) continue;
                     try { Build(b); n++; }
                     catch (Exception e) { Core.Log.Error("[Bay] marking bay '" + b.Id + "' of '" + g.Id + "' failed: " + e.Message); }
                 }
-            if (n > 0) Core.Log.Msg("[Bay] " + n + " bay(s) marked on the ground.");
+            Core.Log.Msg("[Bay] " + n + " bay(s) marked on the ground" + (ShowAll ? " (every bay, debug)" : "") + ".");
         }
 
         private static void Clear()

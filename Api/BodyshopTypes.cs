@@ -85,7 +85,7 @@ namespace MarcosBodyshop.Api
     /// </summary>
     public sealed class BodyshopCategory
     {
-        /// <summary>Unique id, lower case with a mod prefix for categories of your own. Built in: paint, looks, engine, brakes, transmission, suspension, turbo, tyres.</summary>
+        /// <summary>Unique id, lower case with a mod prefix for categories of your own. Built in: paint, paint2, looks, engine, brakes, transmission, suspension, turbo, tyres.</summary>
         public string Id;
         public string Label;
         /// <summary>A built-in icon: paint, looks, engine, brakes, gears, susp, turbo, tyres, interior, workshop, wrench.</summary>

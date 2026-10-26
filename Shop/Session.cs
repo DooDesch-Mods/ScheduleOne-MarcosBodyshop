@@ -195,7 +195,7 @@ namespace MarcosBodyshop.Shop
             _closeRequested = false;
             _shownCash = int.MinValue;
             MoveCamera(null, true);
-            Core.Log.Msg("[Menu] open: garage '" + garage + "', bay '" + bay.Id + "', " + v.VehicleName + " (net " + vehicleId + ").");
+            Core.Log.Msg("[Menu] open: garage '" + garage + "', bay '" + bay.Id + "', " + v.VehicleName + " (net " + vehicleId + "), box " + LocalBox(v).size.ToString("F1") + ".");
             BodyshopApi.RaiseMenu(v, true);
         }
 
@@ -354,58 +354,197 @@ namespace MarcosBodyshop.Shop
             var pc = PlayerSingleton<PlayerCamera>.Instance;
             if (pc == null || _vehicle == null) return;
             CameraShot? shot = null;
+            bool fixedShot = false;
             try
             {
                 if (entry?.Camera != null) shot = entry.Camera(_vehicle);
                 if (shot == null && _category?.Camera != null) shot = _category.Camera(_vehicle);
-                if (shot == null && _bay?.Camera != null) shot = _bay.Camera(_vehicle);
+                if (shot == null && _bay?.Camera != null) { shot = _bay.Camera(_vehicle); fixedShot = shot != null; }
             }
             catch (Exception e) { Core.Log.Error("[Menu] a camera function failed - the camera stays: " + e.Message); return; }
+            // A bay's own camera is placed for that bay; shots around the vehicle may land in a wall.
             var s = shot ?? DefaultShot(_vehicle);
+            if (!fixedShot) s = FreeView(_vehicle, s);
+            Cutaway.Aim(_vehicle, s.Eye);
             Vector3 look = s.Target - s.Eye;
             if (look.sqrMagnitude < 0.0001f) look = Vector3.forward;
-            pc.OverrideTransform(s.Eye, Quaternion.LookRotation(look), instant ? 0f : CameraLerp, false);
-            pc.OverrideFOV(s.Fov > 1f ? s.Fov : 60f, instant ? 0f : CameraLerp);
+            float fov = s.Fov > 1f ? s.Fov : 60f;
+            var turn = Quaternion.LookRotation(look);
+            turn = Quaternion.AngleAxis(-BesideMenu(fov), Vector3.up) * turn;
+            pc.OverrideTransform(s.Eye, turn, instant ? 0f : CameraLerp, false);
+            pc.OverrideFOV(fov, instant ? 0f : CameraLerp);
+        }
+
+        /// <summary>
+        /// A shot whose eye stands behind a wall or inside a building (a vehicle parked with that side to it) goes to the
+        /// vehicle's other side, mirrored, when that side is free. Whatever still stands in the view fades (<see cref="Cutaway"/>).
+        /// </summary>
+        // The menu covers the left of the screen (596 of 1920 px at 1080 lines, it scales with the height). The camera
+        // turns left by this many degrees so the target sits in the middle of the free part.
+        private static float BesideMenu(float fov)
+        {
+            if (Screen.width <= 0 || Screen.height <= 0) return 0f;
+            // The menu's share of the width is also how far right of the screen centre the free part's centre lies,
+            // in half-widths.
+            float menu = Mathf.Clamp01(596f * Screen.height / 1080f / Screen.width);
+            float halfTan = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad) * Screen.width / Screen.height;
+            return Mathf.Atan(menu * halfTan) * Mathf.Rad2Deg;
+        }
+
+        internal static CameraShot FreeView(LandVehicle v, CameraShot s)
+        {
+            try
+            {
+                if (!Blocked(v, s.Target, s.Eye, out float free)) return s;
+                var t = v.transform;
+                Vector3 e = t.InverseTransformPoint(s.Eye), g = t.InverseTransformPoint(s.Target);
+                var mirrored = new CameraShot(t.TransformPoint(new Vector3(-e.x, e.y, e.z)), t.TransformPoint(new Vector3(-g.x, g.y, g.z)), s.Fov);
+                if (!Blocked(v, mirrored.Target, mirrored.Eye, out _))
+                {
+                    Core.Log.Msg("[Menu] camera view blocked " + free.ToString("F1", CultureInfo.InvariantCulture) + " m out - shown from the other side.");
+                    return mirrored;
+                }
+                Core.Log.Msg("[Menu] camera view blocked on both sides - the shot stays, the blockers fade.");
+                return s;
+            }
+            catch (Exception e) { Core.Log.Warning("[Menu] checking the camera's view failed - the shot stays as given: " + e.Message); return s; }
+        }
+
+        // Free distance from the target towards the eye; the vehicle itself and the local player do not count.
+        private static bool Blocked(LandVehicle v, Vector3 from, Vector3 to, out float free)
+        {
+            Vector3 d = to - from;
+            float len = d.magnitude;
+            free = len;
+            if (len < 0.01f) return false;
+            var player = Player.Local != null ? Player.Local.transform : null;
+            foreach (var hit in Physics.RaycastAll(from, d / len, len, ~0, QueryTriggerInteraction.Ignore))
+            {
+                var c = hit.collider;
+                if (c == null || c.transform.IsChildOf(v.transform)) continue;
+                if (player != null && c.transform.IsChildOf(player)) continue;
+                if (hit.distance < free) free = hit.distance;
+            }
+            return free < len;
         }
 
         /// <summary>Front left, a little above, looking at the middle of the vehicle.</summary>
         internal static CameraShot DefaultShot(LandVehicle v)
         {
-            var b = Bounds(v);
+            var b = LocalBox(v);
             float r = Mathf.Max(b.extents.x, b.extents.z);
-            var t = v.transform;
-            Vector3 eye = b.center + t.forward * (r * 1.6f) - t.right * (r * 1.2f) + Vector3.up * (b.extents.y * 0.8f + 0.6f);
-            return new CameraShot(eye, b.center, 60f);
+            Vector3 eye = b.center + new Vector3(-r * 1.2f, b.extents.y * 0.8f + 0.6f, r * 1.6f);
+            return CameraShot.Around(v, eye, b.center, 60f);
         }
 
+        /// <summary>World box of the vehicle, around <see cref="LocalBox"/>.</summary>
         internal static Bounds Bounds(LandVehicle v)
         {
-            var rs = v.GetComponentsInChildren<Renderer>();
-            bool any = false;
-            var b = new Bounds(v.transform.position, Vector3.one);
-            foreach (var r in rs)
-            {
-                if (r == null || !r.enabled) continue;
-                if (!any) { b = r.bounds; any = true; }
-                else b.Encapsulate(r.bounds);
-            }
-            return b;
+            var b = LocalBox(v);
+            var t = v.transform;
+            var w = new Bounds(t.TransformPoint(b.center), Vector3.zero);
+            for (int i = 0; i < 8; i++) w.Encapsulate(t.TransformPoint(b.center + Vector3.Scale(b.extents, Corner(i))));
+            return w;
         }
+
+        /// <summary>
+        /// The vehicle's box in its own space (x right, y up, z forward). It comes from the vehicle's solid colliders:
+        /// renderers also hold light cones, reflector strips and glow, whose meshes reach metres past the body. A vehicle
+        /// without solid colliders takes its opaque meshes, minus static-batched ones (their mesh is the whole batch, at
+        /// the place it was batched). World boxes are not used; they grow when the vehicle stands at an angle.
+        /// </summary>
+        internal static Bounds LocalBox(LandVehicle v)
+        {
+            var t = v.transform;
+            var acc = new Box();
+            foreach (var c in v.GetComponentsInChildren<Collider>())
+            {
+                if (c == null || !c.enabled || c.isTrigger) continue;
+                var bc = c.TryCast<BoxCollider>();
+                if (bc != null) { acc.Add(t, c.transform, new Bounds(bc.center, bc.size)); continue; }
+                var mc = c.TryCast<MeshCollider>();
+                if (mc != null && mc.sharedMesh != null) { acc.Add(t, c.transform, mc.sharedMesh.bounds); continue; }
+                // Spheres, capsules and wheels: their world box, small enough that the angle does not matter.
+                var wb = c.bounds;
+                acc.Add(t, null, wb);
+            }
+            if (acc.Any) return acc.B;
+            foreach (var r in v.GetComponentsInChildren<Renderer>())
+            {
+                if (r == null || !r.enabled || r.isPartOfStaticBatch) continue;
+                var m = r.sharedMaterial;
+                if (m != null && m.renderQueue >= (int)UnityEngine.Rendering.RenderQueue.AlphaTest + 50) continue;   // glass, beams, glow
+                var mf = r.GetComponent<MeshFilter>();
+                var mesh = mf != null ? mf.sharedMesh : null;
+                if (mesh == null || mesh.bounds.size.sqrMagnitude < 0.0001f) continue;
+                acc.Add(t, r.transform, mesh.bounds);
+            }
+            return acc.Any ? acc.B : new Bounds(Vector3.zero, Vector3.one * 2f);
+        }
+
+        // Collects the eight corners of local boxes in the vehicle's space; a null transform means a world box.
+        private sealed class Box
+        {
+            internal Bounds B;
+            internal bool Any;
+
+            internal void Add(Transform vehicle, Transform space, Bounds local)
+            {
+                if (local.size.sqrMagnitude < 0.0001f) return;
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector3 corner = local.center + Vector3.Scale(local.extents, Corner(i));
+                    Vector3 p = vehicle.InverseTransformPoint(space != null ? space.TransformPoint(corner) : corner);
+                    if (!Any) { B = new Bounds(p, Vector3.zero); Any = true; }
+                    else B.Encapsulate(p);
+                }
+            }
+        }
+
+        /// <summary>The open vehicle's box and its largest renderers, to find a mesh that makes the box too big.</summary>
+        internal static List<string> BoxReport()
+        {
+            var lines = new List<string>();
+            if (_vehicle == null) { lines.Add("box: no menu open"); return lines; }
+            var t = _vehicle.transform;
+            lines.Add("box: " + LocalBox(_vehicle).ToString("F1"));
+            var sizes = new List<(float, string)>();
+            foreach (var r in _vehicle.GetComponentsInChildren<Renderer>())
+            {
+                if (r == null || !r.enabled || r.isPartOfStaticBatch) continue;
+                var mf = r.GetComponent<MeshFilter>();
+                var mesh = mf != null ? mf.sharedMesh : null;
+                if (mesh == null) continue;
+                var mb = mesh.bounds;
+                var b = new Bounds(t.InverseTransformPoint(r.transform.TransformPoint(mb.center)), Vector3.zero);
+                for (int i = 0; i < 8; i++) b.Encapsulate(t.InverseTransformPoint(r.transform.TransformPoint(mb.center + Vector3.Scale(mb.extents, Corner(i)))));
+                string path = r.name;
+                for (var p = r.transform.parent; p != null && p != t; p = p.parent) path = p.name + "/" + path;
+                sizes.Add((b.size.magnitude, path + " " + b.ToString("F1")));
+            }
+            sizes.Sort((x, y) => y.Item1.CompareTo(x.Item1));
+            for (int i = 0; i < sizes.Count && i < 8; i++) lines.Add("  " + sizes[i].Item2);
+            return lines;
+        }
+
+        private static Vector3 Corner(int i) => new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f);
 
         // ---- per frame ------------------------------------------------------------------------------------------
 
         internal static void Tick()
         {
             if (!_open) return;
+            Cutaway.Tick();
             if (_closeRequested) { Close("the player left the menu"); return; }
             if (_vehicle == null || ShopNet.VehicleById(_vehicleId) == null) { Close("the vehicle is gone"); return; }
 
             var kb = Keyboard.current;
             if (kb != null)
             {
-                if (kb.upArrowKey.wasPressedThisFrame) _surface?.Emit("key", "up");
-                if (kb.downArrowKey.wasPressedThisFrame) _surface?.Emit("key", "down");
-                if (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame) _surface?.Emit("key", "enter");
+                // W and S browse like the arrows, Space buys like Enter. Keys by position: physical W/S on every layout.
+                if (kb.upArrowKey.wasPressedThisFrame || kb.wKey.wasPressedThisFrame) _surface?.Emit("key", "up");
+                if (kb.downArrowKey.wasPressedThisFrame || kb.sKey.wasPressedThisFrame) _surface?.Emit("key", "down");
+                if (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame) _surface?.Emit("key", "enter");
             }
 
             if (_refreshWanted) { _refreshWanted = false; _surface?.Emit("refresh", ""); }
@@ -425,6 +564,7 @@ namespace MarcosBodyshop.Shop
             var v = _vehicle;
             string garage = _garage;
             if (was) LeaveCategory();
+            Cutaway.Clear();
             _open = false;
             _closeRequested = false;
             _busy = false;

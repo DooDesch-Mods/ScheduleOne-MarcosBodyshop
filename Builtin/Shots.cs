@@ -10,12 +10,9 @@ namespace MarcosBodyshop.Builtin
     {
         private static void Box(LandVehicle v, out Vector3 c, out Vector3 half)
         {
-            var b = Session.Bounds(v);
-            var t = v.transform;
-            c = t.InverseTransformPoint(b.center);
-            // World bounds of a turned car are too big; the smaller horizontal extent is close to its half width.
-            float w = Mathf.Min(b.extents.x, b.extents.z), l = Mathf.Max(b.extents.x, b.extents.z);
-            half = new Vector3(w * 0.8f, b.extents.y, l * 0.9f);
+            var b = Session.LocalBox(v);
+            c = b.center;
+            half = b.extents;
         }
 
         /// <summary>Over the bonnet from the front left.</summary>
@@ -44,7 +41,7 @@ namespace MarcosBodyshop.Builtin
         internal static CameraShot? Side(LandVehicle v)
         {
             Box(v, out var c, out var h);
-            return CameraShot.Around(v, c + new Vector3(-h.x - h.z * 1.9f, h.y * 0.1f, 0f), c + new Vector3(0f, -h.y * 0.3f, 0f), 55f);
+            return CameraShot.Around(v, c + new Vector3(-h.x - h.z * 2.3f, h.y * 0.1f, 0f), c + new Vector3(0f, -h.y * 0.3f, 0f), 55f);
         }
     }
 }

@@ -14,7 +14,8 @@ namespace MarcosBodyshop.Debug
     /// Dev console word 'bodyshop' (Debug builds only):
     /// <list type="bullet">
     /// <item><c>bodyshop open [garage]</c> / <c>close</c> - the menu, as Marco's dialogue opens it.</item>
-    /// <item><c>bodyshop bays</c> - every garage's bays and the vehicle in each.</item>
+    /// <item><c>bodyshop box</c> - the open vehicle's box and the renderers with the largest share of it.</item>
+    /// <item><c>bodyshop bays [show|hide]</c> - every garage's bays and the vehicle in each; show/hide outlines every bay on the ground.</item>
     /// <item><c>bodyshop key up|down|enter|back</c> - a key to the page.</item>
     /// <item><c>bodyshop list cat</c>, <c>pick cat/entry</c>, <c>buy cat/entry</c> - the page's calls, without the page.</item>
     /// <item><c>bodyshop cam ex ey ez tx ty tz</c> - hold the camera there (to measure shots).</item>
@@ -35,7 +36,11 @@ namespace MarcosBodyshop.Debug
                     Say(BodyshopApi.Open(a.Length > 0 ? a : BodyshopApi.MarcoGarage, out string why) ? "asked the host for the garage" : "not opened: " + why);
                     break;
                 case "close": BodyshopApi.Close(); break;
-                case "bays": Bays(); break;
+                case "bays":
+                    if (a == "show" || a == "hide") { Marking.ShowAll = a == "show"; Marking.Refresh(); Say("bay outlines " + (Marking.ShowAll ? "on" : "off")); }
+                    Bays();
+                    break;
+                case "box": foreach (var line in Session.BoxReport()) Say(line); break;
                 case "key": Session.Key(a.Length > 0 ? a : "down"); Say("key '" + a + "' sent"); break;
                 case "list": Say("list: " + Session.List(a)); break;
                 case "pick": Say("pick: " + Session.Pick(a)); break;
@@ -47,7 +52,7 @@ namespace MarcosBodyshop.Debug
                     Say("cash +" + n);
                     break;
                 default:
-                    Say("bodyshop open [garage] | close | bays | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | cash N");
+                    Say("bodyshop open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | cash N");
                     break;
             }
         }

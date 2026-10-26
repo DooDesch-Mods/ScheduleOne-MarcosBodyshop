@@ -75,7 +75,9 @@
     <ChassisProject Condition="'$(ChassisProject)' == ''">$(MSBuildThisFileDirectory)../Chassis/Chassis.csproj</ChassisProject>
   </PropertyGroup>
   <ItemGroup Condition="Exists('$(ChassisProject)')">
-    <ProjectReference Include="$(ChassisProject)" Private="false" />
+    <!-- Built for the reference only: Chassis deploys from its own build, never as a copy inside this mod's. -->
+    <ProjectReference Include="$(ChassisProject)" Private="false"
+                      AdditionalProperties="ModsDirectory=$(MSBuildThisFileDirectory)obj/chassis-ref/Mods;UserLibsDirectory=$(MSBuildThisFileDirectory)obj/chassis-ref/UserLibs;PluginsDirectory=$(MSBuildThisFileDirectory)obj/chassis-ref/Plugins;DeployVerifyDisable=true;S1PairInstallRoot=" />
   </ItemGroup>
   <ItemGroup Condition="!Exists('$(ChassisProject)')">
     <Reference Include="Chassis"><HintPath>$(WorkspaceLibPath)/il2cpp/chassis/Chassis.dll</HintPath><Private>false</Private></Reference>

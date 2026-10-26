@@ -1,15 +1,17 @@
 // Marco's Bodyshop - the garage menu.
 //
-// One list at a time: the categories first, Enter opens one, Enter on an entry buys it, Escape goes back up. An entry
+// One list at a time: the categories first, Enter (or Space) opens one, Enter on an entry buys it, Escape goes back up. An entry
 // with a group sits in a sub-list under the group's name (Lights & Looks > Xenon Headlights > the colours). The mod
-// sends the arrow keys as 'key' events (the page only sees keys inside a focused field); in a browser the document's
-// own keydown stands in. The mouse picks a row by hovering and buys it by clicking.
+// sends the arrow keys, W/S, Enter and Space as 'key' events (the page only sees keys inside a focused field); in a browser the document's
+// own keydown stands in. The mouse picks a row by hovering and buys it by clicking. A key press hands the pick to the keys
+// until the mouse moves again: a list drawn anew under a resting pointer would otherwise snap the pick to that row.
 //
 // The host owns the data: shop.start gives the categories, shop.list a category's entries, shop.pick previews an
 // entry on the vehicle ("cat/" ends the preview), shop.buy asks for a purchase and returns "" or the reason it was not
 // sent. The host answers with 'flash' (the line under the menu) and 'refresh' (the data changed).
 
 var inGame = typeof s1 !== 'undefined';
+var mouseLive = false;   // the pointer moved since the last key press
 var VISIBLE = 9;
 
 var root = null;          // { garage, vehicle, cash, items: [{ id, label, icon, note | locked }] }
@@ -120,7 +122,8 @@ function rowOf(r, index, isPick) {
   if (e && e.swatch) { var sw = el('div', 'swatch'); sw.style.background = e.swatch; d.appendChild(sw); }
   d.appendChild(el('span', 'label', e ? e.label : r.label));
   rightSide(d, r);
-  d.addEventListener('mouseenter', function () { if (level().pick !== index) { level().pick = index; changed(); } });
+  d.addEventListener('mouseenter', function () { if (mouseLive) hoverPick(index); });
+  d.addEventListener('mousemove', function () { mouseLive = true; hoverPick(index); });
   d.addEventListener('click', function () { level().pick = index; enter(); });
   d.addEventListener('wheel', function (ev) {
     var dir = inGame ? ev.wheelDelta : (ev.deltaY > 0 ? 1 : -1);
@@ -269,7 +272,12 @@ function flash(text) {
   flashTimer = setTimeout(function () { f.classList.remove('on'); }, 2600);
 }
 
+function hoverPick(index) {
+  if (level().pick !== index) { level().pick = index; changed(); }
+}
+
 function key(k) {
+  mouseLive = false;
   if (!stack.length) return;
   if (k === 'up') move(-1);
   else if (k === 'down') move(1);
@@ -295,8 +303,9 @@ if (inGame) {
   start();
 } else {
   document.addEventListener('keydown', function (ev) {
-    var map = { ArrowUp: 'up', ArrowDown: 'down', Enter: 'enter', Escape: 'back', Backspace: 'back' };
-    if (map[ev.key]) { ev.preventDefault(); key(map[ev.key]); }
+    var map = { ArrowUp: 'up', ArrowDown: 'down', KeyW: 'up', KeyS: 'down', Enter: 'enter', Space: 'enter', Escape: 'back', Backspace: 'back' };
+    var k = map[ev.code] || map[ev.key];
+    if (k) { ev.preventDefault(); key(k); }
   });
   document.body.style.background = '#3a4048 url(backdrop.png) center / cover no-repeat';
   start();
