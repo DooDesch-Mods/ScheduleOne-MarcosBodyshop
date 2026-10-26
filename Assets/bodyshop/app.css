@@ -22,6 +22,8 @@ body {
   font-family: game-ui, Arial, sans-serif;
   color: var(--ink);
   background: transparent;
+  /* Without a height the body is 0 tall here, and overflow: hidden then clips the whole page away. */
+  height: 100vh;
   overflow: hidden;
 }
 

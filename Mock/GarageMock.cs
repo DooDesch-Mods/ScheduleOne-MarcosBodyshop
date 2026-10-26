@@ -46,6 +46,11 @@ namespace MarcosBodyshop.Mock
         private static Vector3 _eye, _target;
         private static Vector3 _playerAtOpen;
         private static float _nextProbe;
+        // The game's own overlay canvases sort above small numbers and hide the menu; Sideload's surface test uses 31000.
+        private static int _sortingOrder = 30500;
+        // What the page should show. Kept, because an emit before the page's script has run reaches nobody; the
+        // page asks for it once on start.
+        private static string _lastShow = "car";
 
         internal static void SceneChanged(string scene)
         {
@@ -71,10 +76,20 @@ namespace MarcosBodyshop.Mock
                     Core.Log.Msg("[Mock] key '" + k + "' sent from the console.");
                     break;
                 case "probe": Probe("console"); break;
+                case "order": Order(rest); break;
                 default:
-                    Core.Log.Msg("[Mock] bodyshop open [car|rv] [pick...] | cam ex ey ez tx ty tz | show car|rv [pick...] | key up|down|enter|back | probe | close");
+                    Core.Log.Msg("[Mock] bodyshop open [car|rv] [pick...] | cam ex ey ez tx ty tz | show car|rv [pick...] | key up|down|enter|back | order N | probe | close");
                     break;
             }
+        }
+
+        private static void Order(string[] a)
+        {
+            if (a.Length < 1 || !int.TryParse(a[0], out int n)) { Core.Log.Warning("[Mock] order needs a whole number."); return; }
+            _sortingOrder = n;
+            var canvas = _canvas != null ? _canvas.GetComponent<Canvas>() : null;
+            if (canvas != null) canvas.sortingOrder = n;
+            Core.Log.Msg("[Mock] menu canvas sorting order " + n + (canvas != null ? " (applied to the open menu)." : " (used on the next open)."));
         }
 
         private static void Cam(string[] a)
@@ -123,7 +138,7 @@ namespace MarcosBodyshop.Mock
             _canvas = new GameObject("MarcosBodyshop_Menu");
             var canvas = _canvas.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 60;
+            canvas.sortingOrder = _sortingOrder;
             _canvas.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
             _canvas.AddComponent<GraphicRaycaster>();
 
@@ -141,6 +156,7 @@ namespace MarcosBodyshop.Mock
                     .OnCall("mock.hover", l => { Core.Log.Msg("[input] page saw the pointer on '" + l + "'."); return "ok"; })
                     .OnCall("mock.click", l => { Core.Log.Msg("[input] page saw a click on '" + l + "'."); return "ok"; })
                     .OnCall("mock.bought", l => { Core.Log.Msg("[Mock] page bought '" + l + "'."); return "ok"; })
+                    .OnCall("mock.start", _ => { Core.Log.Msg("[Mock] page started, showing '" + _lastShow + "'."); return _lastShow; })
                     .OnCall("mock.close", _ => { _closeRequested = true; Core.Log.Msg("[Mock] page asked to close."); return "ok"; });
 
             _open = true;
@@ -165,8 +181,9 @@ namespace MarcosBodyshop.Mock
         {
             if (!_open) { Core.Log.Warning("[Mock] show: the mockup is not open."); return; }
             string arg = a.Length == 0 ? "car" : string.Join(" ", a);
+            _lastShow = arg;
             _surface.Emit("show", arg);
-            Core.Log.Msg("[Mock] page shows '" + arg + "'.");
+            Core.Log.Msg("[Mock] asked the page to show '" + arg + "'.");
         }
 
         private static void RegisterExit()

@@ -19,6 +19,8 @@ import time
 from ctypes import wintypes
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
+# Real pixels, not the scaled ones Windows reports to a process that did not declare DPI awareness.
+user32.SetProcessDPIAware()
 
 INPUT_MOUSE, INPUT_KEYBOARD = 0, 1
 KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP, KEYEVENTF_SCANCODE = 0x1, 0x2, 0x8
@@ -77,11 +79,14 @@ def window_of(pid):
         p = wintypes.DWORD()
         user32.GetWindowThreadProcessId(hwnd, ctypes.byref(p))
         if p.value == pid and user32.IsWindowVisible(hwnd):
-            found.append(hwnd)
+            cls = ctypes.create_unicode_buffer(64)
+            user32.GetClassNameW(hwnd, cls, 64)
+            found.append((cls.value != "UnityWndClass", hwnd))
         return True
 
+    # The MelonLoader console belongs to the same process; the game window has Unity's window class.
     user32.EnumWindows(cb, 0)
-    return found[0] if found else None
+    return sorted(found)[0][1] if found else None
 
 
 def bring_front(hwnd):
@@ -121,6 +126,8 @@ def main(argv):
     try:
         while i < len(steps):
             s = steps[i]
+            if s != "wait" and user32.GetForegroundWindow() != hwnd:
+                print(f"step {i} '{s}': the game window lost the foreground - this step and later ones would miss it")
             if s == "move":
                 fx, fy = float(steps[i + 1]), float(steps[i + 2])
                 x, y = origin.x + int(fx * w), origin.y + int(fy * h)

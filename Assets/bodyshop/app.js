@@ -304,10 +304,13 @@ function show(which, path) {
 
 if (inGame) {
   s1.on('key', function (k) { key(k); s1.call('mock.seen', k); });
-  s1.on('show', function (arg) {
+  var showArg = function (arg) {
     var parts = String(arg).split(' ');
     show(parts[0], parts.slice(1).map(function (n) { return parseInt(n, 10); }));
-  });
+  };
+  s1.on('show', showArg);
+  // The host's first 'show' can fire before this script runs, so the page asks once.
+  showArg(s1.call('mock.start', '') || 'car');
 } else {
   document.addEventListener('keydown', function (e) {
     var map = { ArrowUp: 'up', ArrowDown: 'down', Enter: 'enter', Escape: 'back', Backspace: 'back' };
@@ -318,4 +321,3 @@ if (inGame) {
   show(q[0], q.slice(1).map(function (n) { return parseInt(n, 10); }));
 }
 
-if (inGame) show('car', []);
