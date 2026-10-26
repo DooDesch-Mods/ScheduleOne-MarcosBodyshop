@@ -19,13 +19,13 @@ namespace MarcosBodyshop.Builtin
     /// the repaint spot, seen from the repaint camera. The yard bay in front of the hall is for vehicles too big for
     /// the hall (the hall's entrance is 3.6 x 4.0 m): the lot in front of it, without markings, seen from the vehicle's default shot.
     ///
-    /// Marco's "I'd like to repaint my vehicle" becomes "Modify my vehicle" and opens the bodyshop instead of the
+    /// Marco's "I'd like to repaint my vehicle" becomes "Pimp my ride" and opens the bodyshop instead of the
     /// vanilla paint menu. Its check (vehicle parked, nobody inside) now looks at both bays.
     /// </summary>
     internal static class MarcoGarage
     {
         private const string VanillaChoice = "I'd like to repaint my vehicle";
-        private const string ChoiceText = "Modify my vehicle";
+        private const string ChoiceText = "Pimp my ride";
 
         // The lot in front of the hall, measured in game: from the hall's wall over the parking stalls to the
         // pavement, and from the hall's corner to the pumps. A vehicle whose centre stands on it is in the bay.
