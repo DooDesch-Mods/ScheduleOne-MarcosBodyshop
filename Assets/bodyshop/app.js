@@ -164,7 +164,8 @@ function detail(r) {
   var e = r.entry;
   if (e.blocked) d.appendChild(el('div', 'warn', e.blocked));
   else if (e.text) d.appendChild(el('div', 'text', e.text));
-  if (e.unlocked !== undefined) {
+  // An entry's own text explains it in the vehicle mod's words (and language); the generic rule only stands in for it.
+  if (e.unlocked !== undefined && (e.blocked || !e.text)) {
     d.appendChild(el('div', 'text', e.unlocked
       ? 'Unlocked. Removing and refitting is free.'
       : 'Pay once to unlock. Removing and refitting is free after that.'));

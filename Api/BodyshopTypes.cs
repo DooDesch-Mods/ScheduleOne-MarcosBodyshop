@@ -116,7 +116,8 @@ namespace MarcosBodyshop.Api
         /// <summary>Unique within its category, the same on every machine.</summary>
         public string Id;
         public string Label;
-        /// <summary>One line under the list, e.g. what the part does.</summary>
+        /// <summary>One line under the list, e.g. what the part does. On an <see cref="PriceRule.UnlockOnce"/> entry it replaces the
+        /// menu's own line about paying once, so say that here too.</summary>
         public string Text;
         /// <summary>
         /// Entries with the same group sit in a sub-list of the category, e.g. "Xenon Headlights" inside
