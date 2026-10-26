@@ -60,6 +60,10 @@
     <Reference Include="Il2CppScheduleOne.Core"><HintPath>$(GameManagedPath)/Il2CppScheduleOne.Core.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Il2CppFishNet.Runtime"><HintPath>$(GameManagedPath)/Il2CppFishNet.Runtime.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="S1API.Il2Cpp.MelonLoader"><HintPath>$(WorkspaceLibPath)/il2cpp/s1api/S1API.Il2Cpp.MelonLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(GameManagedPath)/UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.VehiclesModule"><HintPath>$(GameManagedPath)/UnityEngine.VehiclesModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule"><HintPath>$(GameManagedPath)/UnityEngine.ParticleSystemModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AudioModule"><HintPath>$(GameManagedPath)/UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameManagedPath)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(GameManagedPath)/UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UI"><HintPath>$(GameManagedPath)/UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
@@ -97,6 +101,13 @@
   <ItemGroup>
     <EmbeddedResource Include="Assets/bodyshop/*" Exclude="Assets/bodyshop/*.md;Assets/bodyshop/backdrop.png">
       <LogicalName>MarcosBodyshop.Assets.bodyshop.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- The horns (CC0, see THIRD-PARTY-NOTICES.md): 16-bit mono PCM at 22050 Hz. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Assets/sounds/*.pcm">
+      <LogicalName>MarcosBodyshop.Assets.sounds.%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

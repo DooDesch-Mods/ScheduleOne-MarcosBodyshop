@@ -15,6 +15,21 @@ The glyphs of the garage menu (`Assets/bodyshop/i-*.png`) are Lucide icons, rend
 - Source: https://lucide.dev
 - License: ISC License, full text in the section "ISC License (Lucide)"
 
+## Sounds
+
+The horns (`Assets/sounds/*.pcm`) are recordings in the public domain, each cut to one honk, normalised and stored
+as 16-bit mono PCM at 22050 Hz. All are released under Creative Commons Zero (CC0 1.0). Credit is not required and
+is given anyway.
+
+| File | Recording | Author | Source |
+|---|---|---|---|
+| `clown.pcm` | Clown Horn (Single Honk) | Gimp_Revival | https://freesound.org/people/Gimp_Revival/sounds/588570/ |
+| `duck.pcm` | Rubber duck toy squeaking | panmaterac | https://freesound.org/people/panmaterac/sounds/201285/ |
+| `train.pcm` | Cargo train horn at midnight | sgo.75 | https://freesound.org/people/sgo.75/sounds/845065/ |
+| `fanfare.pcm` | Real Trumpet Fanfare 1 | qubodup | https://freesound.org/people/qubodup/sounds/855457/ |
+| `cucaracha.pcm` | La cucaracha car Horn | csnmedia | https://freesound.org/people/csnmedia/sounds/388276/ |
+| `bicycle.pcm` | bicycle-horn-1.wav | AntumDeluge | https://opengameart.org/content/bicycle-horn |
+
 ## License texts
 
 ### ISC License (Lucide)

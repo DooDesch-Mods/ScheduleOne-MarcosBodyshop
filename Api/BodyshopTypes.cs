@@ -85,12 +85,12 @@ namespace MarcosBodyshop.Api
     /// </summary>
     public sealed class BodyshopCategory
     {
-        /// <summary>Unique id, lower case with a mod prefix for categories of your own. Built in: paint, paint2, looks, engine, brakes, transmission, suspension, turbo, tyres.</summary>
+        /// <summary>Unique id, lower case with a mod prefix for categories of your own. Built in: paint, paint2, looks, horn, engine, brakes, transmission, suspension, turbo, tyres, steering, weight, booster.</summary>
         public string Id;
         public string Label;
-        /// <summary>A built-in icon: paint, looks, engine, brakes, gears, susp, turbo, tyres, interior, workshop, wrench.</summary>
+        /// <summary>A built-in icon: paint, looks, horn, engine, brakes, gears, susp, turbo, tyres, steer, weight, nitro, interior, workshop, wrench.</summary>
         public string Icon = "wrench";
-        /// <summary>Position in the menu; built-in categories use 100 to 800 in steps of 100.</summary>
+        /// <summary>Position in the menu; built-in categories use 100 to 950.</summary>
         public int Order = 1000;
         /// <summary>Only in this garage; null for every garage.</summary>
         public string Garage;

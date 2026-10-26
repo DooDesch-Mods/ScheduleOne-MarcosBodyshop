@@ -19,9 +19,12 @@ over the car, the camera moves to the part you look at, and the car shows each c
 
 - **Paint** - the game's colours, plus metallic, matte and chrome.
 - **Second Paint** - the trim in its own colour, on vehicles whose model has one (the RV of RV Repair Van).
-- **Lights & Looks** - xenon headlights, underglow, window tint, rim colour and tyre smoke, each in colours.
-- **Engine, Brakes, Transmission, Suspension** - three or four stages each, with bars for speed,
+- **Lights & Looks** - xenon headlights, underglow (all around, sides only, or front and back), window tint,
+  rim colour and tyre smoke, each in colours.
+- **Horn** - clown horn, rubber duck, freight train, fanfare, La Cucaracha and a bicycle horn. Hold G to honk.
+- **Engine, Brakes, Transmission, Suspension, Steering, Weight** - two to four stages each, with bars for speed,
   acceleration, braking and handling.
+- **Nitro** - hold Left Ctrl for a boost and blue flames at the exhaust. The tank refills by itself.
 - **Turbo** and **Drift Tyres**.
 
 Stock is always free. A part you replace is not refunded.
@@ -33,6 +36,7 @@ Browse with W/S or the arrow keys, buy with Space or Enter, or use the mouse. Es
 ## Settings
 
 Every price is in `UserData/MelonPreferences.cfg` under `[MarcosBodyshop]`, one `Price_<id>` line per item.
+Nitro has `NitroKey`, `NitroBoost`, `NitroSeconds` and `NitroRechargeSeconds` there.
 
 ## Multiplayer
 
@@ -47,12 +51,12 @@ and registers garages and bays of your own. RV Repair Van uses it for the RV's i
 ```csharp
 BodyshopApi.RegisterCategory(new BodyshopCategory
 {
-    Id = "mymod.horns", Label = "Horns", Icon = "wrench", Order = 900,
-    Entries = v => MyHorns.All.Select(h => new BodyshopEntry
+    Id = "mymod.sirens", Label = "Sirens", Icon = "wrench", Order = 1000,
+    Entries = v => MySirens.All.Select(s => new BodyshopEntry
     {
-        Id = h.Id, Label = h.Name, Price = 200,
-        Installed = car => MyHorns.Fitted(car) == h.Id,
-        Apply = car => MyHorns.Fit(car, h.Id),   // runs on the host; null = done, text = refused
+        Id = s.Id, Label = s.Name, Price = 200,
+        Installed = car => MySirens.Fitted(car) == s.Id,
+        Apply = car => MySirens.Fit(car, s.Id),   // runs on the host; null = done, text = refused
     }),
 });
 ```

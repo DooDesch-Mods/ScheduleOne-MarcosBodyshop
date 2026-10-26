@@ -20,6 +20,7 @@ namespace MarcosBodyshop.Debug
     /// <item><c>bodyshop list cat</c>, <c>pick cat/entry</c>, <c>buy cat/entry</c> - the page's calls, without the page.</item>
     /// <item><c>bodyshop cam ex ey ez tx ty tz</c> - hold the camera there (to measure shots).</item>
     /// <item><c>bodyshop cash N</c> - add N to the local player's cash.</item>
+    /// <item><c>bodyshop nitro [seconds]</c> - burn nitro in the driven car without the key; no number shows the state.</item>
     /// </list>
     /// </summary>
     internal static class Commands
@@ -51,8 +52,12 @@ namespace MarcosBodyshop.Debug
                     S1API.Money.Money.ChangeCashBalance(n, true, false);
                     Say("cash +" + n);
                     break;
+                case "nitro":
+                    if (a.Length > 0 && float.TryParse(a, NumberStyles.Float, CultureInfo.InvariantCulture, out float secs)) { Builtin.Nitro.ForceUntil = Time.time + secs; Say("nitro held for " + a + " s"); }
+                    Say(Builtin.Nitro.Describe());
+                    break;
                 default:
-                    Say("bodyshop open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | cash N");
+                    Say("bodyshop nitro [seconds] | open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | cash N");
                     break;
             }
         }
