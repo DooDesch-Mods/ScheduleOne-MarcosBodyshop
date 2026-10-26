@@ -1,0 +1,25 @@
+{
+  "_": "Glyphs for the garage menu: flat white, tinted through CSS color. Regenerate: node ../Workspace/tools/icongen/gen.js tools/icons.json",
+  "out": "../Assets/bodyshop",
+  "size": 48,
+  "color": "#ffffff",
+  "stroke": 2,
+  "icons": {
+    "i-wrench": "wrench",
+    "i-paint": "spray-can",
+    "i-looks": "sparkles",
+    "i-engine": "gauge",
+    "i-brakes": "disc-3",
+    "i-gears": "cog",
+    "i-susp": "arrow-down-to-line",
+    "i-turbo": "fan",
+    "i-tyres": "circle-dot",
+    "i-interior": "sofa",
+    "i-workshop": "hammer",
+    "i-check": "check",
+    "i-lock": "lock",
+    "i-updown": "arrow-up-down",
+    "i-enter": "corner-down-left",
+    "i-mouse": "mouse-pointer-click"
+  }
+}

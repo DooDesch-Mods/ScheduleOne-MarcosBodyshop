@@ -1,0 +1,127 @@
+/* Marco's Bodyshop - the garage menu over the car.
+   Written for a 1920 x 1080 frame: the surface is mounted with a short side of 1080 css px, so every number here
+   is a 1080p pixel and scales with the screen. Sideload lays every element out as a column flex box; the reset
+   below makes a browser do the same, so the page reads alike in both. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+div { display: flex; flex-direction: column; }
+
+:root {
+  --row: rgba(12, 14, 18, 0.78);
+  --row-hover: rgba(34, 38, 46, 0.86);
+  --pick-bg: #F2F3F5;
+  --pick-ink: #121418;
+  --ink: #F2F3F5;
+  --muted: #A3A9B5;
+  --accent: #F28C28;
+  --cash: #8FE39A;
+  --short: #E5675A;
+}
+
+body {
+  font-family: game-ui, Arial, sans-serif;
+  color: var(--ink);
+  background: transparent;
+  overflow: hidden;
+}
+
+.hud { position: absolute; left: 0; top: 0; right: 0; bottom: 0; }
+
+/* The menu column, top left, the way Benny's sits. The rest of the screen belongs to the car. */
+.menu { position: absolute; left: 56px; top: 56px; width: 540px; }
+
+.banner {
+  display: flex; flex-direction: row; align-items: center; justify-content: space-between;
+  height: 132px; padding: 0 28px 0 30px;
+  background: linear-gradient(180deg, #23262D, #121418);
+  border-bottom: 6px solid var(--accent);
+}
+.brand { display: flex; flex-direction: column; }
+.marco { font-family: game-hand, "Segoe Print", cursive; font-size: 62px; color: #FFFFFF; line-height: 64px; }
+.shop { font-size: 22px; font-weight: bold; letter-spacing: 9px; color: var(--accent); }
+.banner-icon { width: 64px; height: 64px; color: rgba(255, 255, 255, 0.18); }
+
+.head {
+  display: flex; flex-direction: row; align-items: center; justify-content: space-between;
+  height: 46px; padding: 0 20px;
+  background: rgba(0, 0, 0, 0.9);
+  font-size: 19px; font-weight: bold; letter-spacing: 1px;
+}
+.crumb { color: var(--ink); text-transform: uppercase; }
+.count { color: var(--muted); }
+
+.list { display: flex; flex-direction: column; }
+
+.row {
+  display: flex; flex-direction: row; align-items: center;
+  height: 50px; padding: 0 20px; gap: 14px;
+  background: var(--row);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 20px;
+}
+.row:hover { background: var(--row-hover); }
+.row.pick { background: var(--pick-bg); color: var(--pick-ink); }
+.row.locked { color: #6E7480; }
+
+.row .ico { width: 24px; height: 24px; color: var(--ink); }
+.row.pick .ico { color: var(--pick-ink); }
+.row.locked .ico { color: #6E7480; }
+
+.row .label { flex: 1; }
+.row .note { font-size: 17px; color: var(--muted); }
+.row.pick .note { color: #5A606C; }
+.row .price { font-size: 20px; font-weight: bold; min-width: 84px; text-align: right; }
+.row .price.short { color: var(--short); }
+.row .owned { display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 17px; font-weight: bold; color: var(--accent); }
+.row .owned img { width: 20px; height: 20px; color: var(--accent); }
+.row.pick .owned { color: #B85E10; }
+.row.pick .owned img { color: #B85E10; }
+
+.swatch { width: 22px; height: 22px; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 3px; }
+.row.pick .swatch { border-color: rgba(0, 0, 0, 0.45); }
+
+.more { height: 22px; align-items: center; justify-content: center; background: var(--row); font-size: 14px; color: var(--muted); }
+
+.detail {
+  display: flex; flex-direction: column; gap: 12px;
+  margin-top: 6px; padding: 16px 20px 18px;
+  background: rgba(0, 0, 0, 0.82);
+  border-left: 4px solid var(--accent);
+}
+.detail .text { font-size: 18px; color: var(--ink); }
+.detail .warn { font-size: 18px; color: var(--short); }
+
+.stat { display: flex; flex-direction: row; align-items: center; gap: 14px; }
+.stat .name { width: 128px; font-size: 16px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.track { display: flex; flex-direction: row; flex: 1; height: 10px; background: #2A2E37; }
+.fill { height: 10px; background: #F2F3F5; }
+.gain { height: 10px; background: var(--accent); }
+
+/* Money and the car, top right, large enough to read against a bright sky. */
+.wallet { position: absolute; right: 56px; top: 56px; align-items: flex-end; }
+.cash { font-size: 46px; font-weight: bold; color: var(--cash); }
+.vehicle { font-size: 20px; color: var(--ink); letter-spacing: 1px; text-transform: uppercase; }
+
+/* Key hints, bottom right. */
+.keys {
+  position: absolute; right: 56px; bottom: 48px;
+  display: flex; flex-direction: row; align-items: center; gap: 26px;
+  padding: 12px 18px; background: rgba(0, 0, 0, 0.72);
+}
+.key { display: flex; flex-direction: row; align-items: center; gap: 10px; font-size: 18px; }
+.cap {
+  width: 36px; height: 34px; align-items: center; justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.85); border-radius: 4px;
+}
+.cap.wide { width: 52px; }
+.cap img { width: 20px; height: 20px; color: #FFFFFF; }
+.cap span { font-size: 15px; font-weight: bold; }
+
+/* The bought line, under the menu. */
+.flash {
+  position: absolute; left: 56px; bottom: 48px;
+  display: none; padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.82); border-left: 4px solid var(--cash);
+  font-size: 20px;
+}
+.flash.on { display: flex; }
