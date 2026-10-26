@@ -88,5 +88,6 @@ Menu icons from [Lucide](https://lucide.dev), licensed [ISC](https://lucide.dev/
 
 ## License
 
-DooDesch, see [LICENSE.md](LICENSE.md). Forks, changes and pull requests are welcome. Publishing or reuploading
-the mod or a changed copy needs written permission.
+DooDesch API License - build your own mods on `BodyshopApi`, do not copy the code. Forks, changes and pull
+requests are welcome. Publishing or reuploading the mod or a changed copy needs written permission. See
+[LICENSE.md](LICENSE.md).

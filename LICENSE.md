@@ -3,26 +3,36 @@
 Copyright (c) 2026 DooDesch
 
 Marco's Bodyshop (the "Software") covers its source code, compiled files, documentation and assets made by
-DooDesch. You can read the source, change it and send improvements back. Publishing the Software or a
-changed copy of it is reserved to DooDesch. This license gives only the rights written here.
+DooDesch. You can build your own mods on its API, and you can read the source, change it and send
+improvements back. Publishing the Software or a changed copy of it is reserved to DooDesch. This license
+gives only the rights written here.
+
+## The API
+
+The API of the Software is:
+
+- every public type and member of the compiled MarcosBodyshop assembly, and
+- the API files: every file in the `Api/` folder
 
 ## You may
 
-1. Download the Software from an official release channel, install it and run it, alone or on a server
-   you operate.
-2. Read the source code, fork the repository and change your copy.
-3. Build your changed copy and use it on your own game and your own server. You may give the build to
-   the players of that server directly, but not through a public download or a mod site.
-4. Send your changes to DooDesch as a pull request or an issue.
-5. Name the unmodified Software as a dependency of a modpack, as long as the modpack gets it from an
+1. Download the Software from an official release channel, install it and run it.
+2. Write and publish your own mod that uses the API: compile against the Software, call the API, and
+   name the Software as a dependency of your mod.
+3. Copy the API files unchanged into your mod and publish them as part of it, compiled or as source.
+   Keep the copyright line at the top of each file.
+4. Read the source code, fork the repository and change your copy for your own game.
+5. Send your changes to DooDesch as a pull request or an issue.
+6. Name the unmodified Software as a dependency of a modpack, as long as the modpack gets it from an
    official release channel and does not include, rename or change it.
 
 ## You may not, without prior written permission from DooDesch
 
 1. Publish, upload, mirror or share the Software or a changed copy of it, as source or as a build,
-   in whole or in part, on Thunderstore, Nexus Mods or any other place. A public fork of the source
-   repository on its code host, kept to share changes and make pull requests, is permitted.
-2. Copy any part of the source code or the assets into another work.
+   in whole or in part, on Thunderstore, Nexus Mods or any other place. The API files under "You may"
+   item 3 are the exception. A public fork of the source repository on its code host, kept to share
+   changes and make pull requests, is permitted.
+2. Copy any other part of the source code or the assets into another work, also not in a changed form.
 3. Sell or rent the Software, a changed copy of it, or access to either.
 4. Remove or change this license, a copyright notice, or the attribution to DooDesch.
 
@@ -48,17 +58,18 @@ free right to use, change and publish it as part of the Software, under this lic
 
 - The DooDesch namespace on Thunderstore
 - The DooDesch pages on Nexus Mods
+- The releases of the DooDesch-Mods/ScheduleOne-MarcosBodyshop repository on GitHub
 
 ## Parts by other authors
 
 Libraries and assets by other authors that come with the Software keep their own licenses. This
-license does not cover them. The car model is "Tesla 2018 Model 3" by Ameer Studio under CC BY 4.0; see
-LICENSE-MODEL.txt. The app icons are from Lucide under the ISC License, and the sounds are CC0 recordings
-from freesound.org. THIRD-PARTY-NOTICES.md lists each part with its source and license text.
+license does not cover them. The menu icons are from Lucide under the ISC License, and the horn and tool
+sounds are CC0 recordings from freesound.org and OpenGameArt. THIRD-PARTY-NOTICES.md lists each part with
+its source and license text.
 
 ## Permission
 
-Ask for permission at https://support.doodesch.de/yesla.
+Ask for permission at https://support.doodesch.de/marcosbodyshop.
 
 ## No warranty
 
