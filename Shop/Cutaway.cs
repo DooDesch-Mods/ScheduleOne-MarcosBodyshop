@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Il2CppScheduleOne.NPCs;
 using Il2CppScheduleOne.PlayerScripts;
 using Il2CppScheduleOne.Vehicles;
 using UnityEngine;
@@ -8,7 +9,7 @@ using UnityEngine.Rendering;
 namespace MarcosBodyshop.Shop
 {
     /// <summary>
-    /// Fades what stands between the menu camera and the vehicle: a pole, a sign, the corner of a building. Each blocking
+    /// Fades what stands between the menu camera and the vehicle: a pole, a sign, a person, the corner of a building. Each blocking
     /// renderer gets transparent copies of its materials (URP Lit, its colour and texture; text keeps its own shader and
     /// fades its face colour) and fades to a faint ghost; it fades back in when the camera moves on, and gets its own
     /// materials back when the menu closes. Without the URP Lit shader a blocker draws only its shadow.
@@ -171,7 +172,48 @@ namespace MarcosBodyshop.Shop
                     }
                 }
             }
+            People(t, eye, points, seen, list);
             return list;
+        }
+
+        // An NPC's colliders are its ragdoll bones, and its body mesh hangs beside them, not under them, so the colliders
+        // never name the body. Each NPC near the vehicle is checked by the box of its body meshes instead (Marco stands in
+        // his own hall), and fades as a whole: body, clothes, hair.
+        private static void People(Transform vehicle, Vector3 eye, List<Vector3> points, HashSet<IntPtr> seen, List<Renderer> list)
+        {
+            var npcs = NPCManager.NPCRegistry;
+            if (npcs == null) { Core.Log.Warning("[Menu] no NPC registry - people in front of the camera stay in view."); return; }
+            float reach = (vehicle.position - eye).magnitude + 10f;
+            foreach (var npc in npcs)
+            {
+                if (npc == null || npc.Avatar == null) continue;
+                var avatar = npc.Avatar.transform;
+                if ((avatar.position - eye).sqrMagnitude > reach * reach) continue;
+                var renderers = avatar.GetComponentsInChildren<Renderer>();
+                bool blocks = false;
+                foreach (var r in renderers)
+                {
+                    if (r == null || !r.enabled || r.TryCast<SkinnedMeshRenderer>() == null) continue;
+                    var b = r.bounds;
+                    b.Expand(RayRadius * 2f);
+                    foreach (var p in points)
+                    {
+                        Vector3 d = p - eye;
+                        float len = d.magnitude;
+                        if (len < 0.5f) continue;
+                        if (b.IntersectRay(new Ray(eye, d / len), out float at) && at <= len) { blocks = true; break; }
+                    }
+                    if (blocks) break;
+                }
+                if (!blocks) continue;
+                foreach (var r in renderers)
+                {
+                    if (r == null || !r.enabled || seen.Contains(r.Pointer)) continue;
+                    if (r.TryCast<SkinnedMeshRenderer>() == null && r.TryCast<MeshRenderer>() == null) continue;   // not the particles (smell, blood mist)
+                    seen.Add(r.Pointer);
+                    list.Add(r);
+                }
+            }
         }
 
         // From a to b in steps of at most GridStep, both ends included.
