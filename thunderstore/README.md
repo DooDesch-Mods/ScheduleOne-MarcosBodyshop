@@ -6,6 +6,9 @@
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![Status](https://img.shields.io/badge/status-beta-yellow)
+[![Polyfill](https://polyfill.doomods.com/badge/marcosbodyshop.svg)](https://polyfill.doomods.com/mod/marcosbodyshop)
+
+![Marco's Bodyshop](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/main/docs/img/header.jpg)
 
 > Marco does more than paint now.
 
@@ -15,7 +18,7 @@ Park any car in Marco's shop at the gas station and pick **Modify my vehicle** i
 over the car, the camera moves to the part you look at, and the car shows each choice before you pay.
 
 - **Paint** - the game's colours, plus metallic, matte and chrome.
-- **Second Paint** - stripes and trim in their own colour, on vehicles whose model has them (the RV of RV Repair Van).
+- **Second Paint** - the trim in its own colour, on vehicles whose model has one (the RV of RV Repair Van).
 - **Lights & Looks** - xenon headlights, underglow, window tint, rim colour and tyre smoke, each in colours.
 - **Engine, Brakes, Transmission, Suspension** - three or four stages each, with bars for speed,
   acceleration, braking and handling.
@@ -57,6 +60,11 @@ BodyshopApi.RegisterCategory(new BodyshopCategory
 ## Uninstalling
 
 The tuning is saved by Chassis and stays on the cars without this mod.
+
+## Screenshots
+
+![Paint](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/main/docs/img/paint.jpg)
+![The RV on Marco's lot](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/main/docs/img/rv.jpg)
 
 ## Requirements
 
