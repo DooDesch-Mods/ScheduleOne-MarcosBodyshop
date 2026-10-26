@@ -422,7 +422,7 @@ jobs:
           repo: thunderstore.io
           namespace: DooDesch
           name: MarcosBodyshop
-          description: Marco's repaint shop becomes a tuning garage for every car: paint, lights and looks, and engine, brakes, transmission, suspension, turbo and tyre upgrades, picked from a menu over the car.
+          description: "Marco's repaint shop becomes a tuning garage for every car: paint, lights and looks, and engine, brakes, transmission, suspension, turbo and tyre upgrades, picked from a menu over the car."
           version: ${{ needs.build.outputs.version }}
           path: thunderstore-package
           # Sideload draws the garage menu, so the mod needs it.
