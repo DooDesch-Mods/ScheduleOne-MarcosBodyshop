@@ -1,8 +1,8 @@
 // Marco's Bodyshop - the garage menu.
 //
-// One list at a time: the categories first, Enter (or Space) opens one, Enter on an entry buys it, Escape goes back up. An entry
+// One list at a time: the categories first, Enter (or Space or D) opens one, Enter on an entry buys it, Escape (or A) goes back up. An entry
 // with a group sits in a sub-list under the group's name (Lights & Looks > Xenon Headlights > the colours). The mod
-// sends the arrow keys, W/S, Enter and Space as 'key' events (the page only sees keys inside a focused field); in a browser the document's
+// sends the arrow keys, W/A/S/D, Enter and Space as 'key' events (the page only sees keys inside a focused field); in a browser the document's
 // own keydown stands in. The mouse picks a row by hovering and buys it by clicking. A key press hands the pick to the keys
 // until the mouse moves again: a list drawn anew under a resting pointer would otherwise snap the pick to that row.
 //
@@ -304,7 +304,7 @@ if (inGame) {
   start();
 } else {
   document.addEventListener('keydown', function (ev) {
-    var map = { ArrowUp: 'up', ArrowDown: 'down', KeyW: 'up', KeyS: 'down', Enter: 'enter', Space: 'enter', Escape: 'back', Backspace: 'back' };
+    var map = { ArrowUp: 'up', ArrowDown: 'down', KeyW: 'up', KeyS: 'down', KeyD: 'enter', KeyA: 'back', Enter: 'enter', Space: 'enter', Escape: 'back', Backspace: 'back' };
     var k = map[ev.code] || map[ev.key];
     if (k) { ev.preventDefault(); key(k); }
   });

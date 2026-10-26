@@ -102,13 +102,13 @@ namespace MarcosBodyshop.Builtin
         // ---- clips -------------------------------------------------------------------------------------------------
 
         /// <summary>16-bit mono PCM embedded as <c>MarcosBodyshop.Assets.sounds.&lt;file&gt;.pcm</c>.</summary>
-        private static AudioClip Pcm(string name, string file)
+        internal static AudioClip Pcm(string name, string file)
         {
             string resource = "MarcosBodyshop.Assets.sounds." + file + ".pcm";
             byte[] bytes;
             using (Stream s = typeof(HornShop).Assembly.GetManifestResourceStream(resource))
             {
-                if (s == null) { Core.Log.Error("[Horn] embedded sound '" + resource + "' is missing - that horn is missing from the menu."); return null; }
+                if (s == null) { Core.Log.Error("[Sound] embedded sound '" + resource + "' is missing - '" + name + "' stays silent."); return null; }
                 using (var ms = new MemoryStream()) { s.CopyTo(ms); bytes = ms.ToArray(); }
             }
             int n = bytes.Length / 2;
