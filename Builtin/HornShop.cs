@@ -86,14 +86,13 @@ namespace MarcosBodyshop.Builtin
             }
         }
 
-        /// <summary>The horn once at the front of the car, on this machine only.</summary>
+        /// <summary>The horn once at the front of the car, on this machine only; a horn still sounding stops.</summary>
         private static void Play(LandVehicle v, string name)
         {
             if (!_clips.TryGetValue(name, out var clip) || clip == null) { Core.Log.Warning("[Horn] no clip '" + name + "' to play in the preview."); return; }
             try
             {
-                var at = v.transform.TransformPoint(new Vector3(0f, 0.6f, 1.8f));
-                AudioSource.PlayClipAtPoint(clip, at, 0.8f);
+                Shop.Sounds.Horn(clip, v.transform.TransformPoint(new Vector3(0f, 0.6f, 1.8f)));
                 Core.Log.Msg("[Horn] preview of '" + name + "' played.");
             }
             catch (Exception e) { Core.Log.Warning("[Horn] the preview of '" + name + "' could not play: " + e.Message); }
