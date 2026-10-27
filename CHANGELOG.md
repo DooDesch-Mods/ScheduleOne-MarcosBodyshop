@@ -4,6 +4,15 @@ All notable changes to Marco's Bodyshop are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to Semantic Versioning.
 
+## [1.0.1] - 2026-10-27
+
+### Added
+- German menu text. The menu follows the game language.
+
+### Fixed
+- The RV stands in front of the hall in full view of the camera while the menu is open.
+- The cash label and the "more below" row are no longer cut off or unstyled.
+
 ## [1.0.0] - 2026-10-27
 
 ### Added
