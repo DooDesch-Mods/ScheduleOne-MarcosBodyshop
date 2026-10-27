@@ -50,6 +50,11 @@
     <MelonLoaderPath>$(WorkspaceLibPath)/il2cpp/melonloader</MelonLoaderPath>
   </PropertyGroup>
 
+  <!-- Shared gettext-style localization (DooDesch.Localization.L10n). Linked source, internal class. MUST come after
+       the Workspace Remove above and after WorkspaceLibPath is set; resolved via $(WorkspaceLibPath)/.. so the same
+       line works locally (Workspace = sibling folder) and in CI (Workspace = subfolder checkout). -->
+  <Import Project="$(WorkspaceLibPath)/../build/L10n.props" Condition="Exists('$(WorkspaceLibPath)/../build/L10n.props')" />
+
   <ItemGroup>
     <Reference Include="MelonLoader"><HintPath>$(MelonLoaderPath)/MelonLoader.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(MelonLoaderPath)/0Harmony.dll</HintPath><Private>false</Private></Reference>

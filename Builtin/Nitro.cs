@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Chassis.Api;
+using DooDesch.Localization;
 using HarmonyLib;
 using Il2CppScheduleOne;
 using Il2CppScheduleOne.PlayerScripts;
@@ -47,8 +48,8 @@ namespace MarcosBodyshop.Builtin
 
         internal static void Register()
         {
-            ChassisApi.RegisterTuningPart(new TuningPart { Id = PartId, Slot = "booster", Label = "Nitrous Kit", Price = 5000 });
-            Hint("Nitro");
+            ChassisApi.RegisterTuningPart(new TuningPart { Id = PartId, Slot = "booster", Label = L10n.T("Nitrous Kit"), Price = 5000 });
+            Hint(L10n.T("Nitro"));
         }
 
         private static void Hint(string label) =>
@@ -123,7 +124,7 @@ namespace MarcosBodyshop.Builtin
             _factor = Mathf.MoveTowards(_factor, _on ? Prefs.NitroBoost : 1f, dt * FactorRate);
 
             int step = Mathf.RoundToInt(tank * 10f);
-            if (step != _shownStep) { _shownStep = step; Hint("Nitro " + (step * 10) + "%"); }
+            if (step != _shownStep) { _shownStep = step; Hint(L10n.T("Nitro {0}%", step * 10)); }
         }
 
         private static void Send(int id, bool on) => ShopNet.ToHost("req.nitro", id.ToString(CultureInfo.InvariantCulture), on ? "1" : "0");

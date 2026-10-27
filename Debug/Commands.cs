@@ -21,6 +21,7 @@ namespace MarcosBodyshop.Debug
     /// <item><c>bodyshop cam ex ey ez tx ty tz</c> - hold the camera there (to measure shots).</item>
     /// <item><c>bodyshop cash N</c> - add N to the local player's cash.</item>
     /// <item><c>bodyshop radio x y z yaw</c> - move the workshop radio (to find its spot).</item>
+    /// <item><c>bodyshop park x z yaw</c> - where the yard puts a vehicle on the next open (to find the spot).</item>
     /// <item><c>bodyshop nitro [seconds]</c> - burn nitro in the driven car without the key; no number shows the state.</item>
     /// </list>
     /// </summary>
@@ -57,6 +58,18 @@ namespace MarcosBodyshop.Debug
                     Say(ok ? Sounds.Place(new Vector3(f[0], f[1], f[2]), f[3]) : "radio: four numbers needed");
                     break;
                 }
+                case "park":
+                {
+                    var f = new float[3];
+                    if (p.Length < 5) { Say("park needs x z yaw; now " + Builtin.MarcoGarage.YardParkSpot.ToString("F2") + " yaw " + Builtin.MarcoGarage.YardParkYaw.ToString("F0")); break; }
+                    bool ok = true;
+                    for (int i = 0; i < 3; i++) ok &= float.TryParse(p[i + 2], NumberStyles.Float, CultureInfo.InvariantCulture, out f[i]);
+                    if (!ok) { Say("park: three numbers needed"); break; }
+                    Builtin.MarcoGarage.YardParkSpot = new Vector2(f[0], f[1]);
+                    Builtin.MarcoGarage.YardParkYaw = f[2];
+                    Say("yard spot (" + f[0].ToString("F2") + ", " + f[1].ToString("F2") + ") yaw " + f[2].ToString("F0") + " - takes effect on the next open");
+                    break;
+                }
                 case "cash":
                     if (!int.TryParse(a, NumberStyles.Integer, CultureInfo.InvariantCulture, out int n)) { Say("cash needs a whole number"); break; }
                     S1API.Money.Money.ChangeCashBalance(n, true, false);
@@ -67,7 +80,7 @@ namespace MarcosBodyshop.Debug
                     Say(Builtin.Nitro.Describe());
                     break;
                 default:
-                    Say("bodyshop nitro [seconds] | open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | radio x y z yaw | cash N");
+                    Say("bodyshop nitro [seconds] | open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | radio x y z yaw | park x z yaw | cash N");
                     break;
             }
         }

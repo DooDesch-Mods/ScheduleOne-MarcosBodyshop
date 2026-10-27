@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Chassis.Api;
+using DooDesch.Localization;
 using Il2CppScheduleOne.Vehicles;
 using MarcosBodyshop.Api;
 using MarcosBodyshop.Config;
@@ -37,13 +38,13 @@ namespace MarcosBodyshop.Builtin
 
             foreach (var s in Slots)
             {
-                string slot = s.slot, blurb = s.blurb;
+                string slot = s.slot, blurb = s.blurb != null ? L10n.T(s.blurb) : null;
                 BodyshopApi.RegisterCategory(new BodyshopCategory
                 {
-                    Id = slot, Label = s.label, Icon = s.icon, Order = s.order,
+                    Id = slot, Label = L10n.T(s.label), Icon = s.icon, Order = s.order,
                     Camera = slot == "engine" || slot == "turbo" ? Shots.Front : slot == "transmission" || slot == "booster" ? Shots.Rear : slot == "weight" ? Shots.Side : Shots.Wheel,
                     AppliesTo = v => ChassisApi.TuningParts(v, slot).Count > 0,
-                    Note = v => ChassisApi.TuningPartById(ChassisApi.InstalledPart(v, slot) ?? "")?.Label ?? (Empty(slot) ? "None" : "Stock"),
+                    Note = v => ChassisApi.TuningPartById(ChassisApi.InstalledPart(v, slot) ?? "")?.Label ?? L10n.T(Empty(slot) ? "None" : "Stock"),
                     Entries = v => Entries(v, slot, blurb),
                 });
             }
@@ -54,8 +55,8 @@ namespace MarcosBodyshop.Builtin
             yield return new BodyshopEntry
             {
                 Id = "stock",
-                Label = Empty(slot) ? "None" : "Stock",
-                Text = "Back to stock. Free, no refund.",
+                Label = L10n.T(Empty(slot) ? "None" : "Stock"),
+                Text = L10n.T("Back to stock. Free, no refund."),
                 Price = 0,
                 Stats = new TuningStats(),
                 Installed = x => ChassisApi.InstalledPart(x, slot) == null,
@@ -72,7 +73,7 @@ namespace MarcosBodyshop.Builtin
                 {
                     Id = id,
                     Label = p.Label ?? id,
-                    Text = blurb ?? "Hold " + KeyName(Prefs.NitroKey) + " for nitro. The tank refills by itself.",
+                    Text = blurb ?? L10n.T("Hold {0} for nitro. The tank refills by itself.", KeyName(Prefs.NitroKey)),
                     Price = Prefs.Price(id, p.Price),
                     Stats = p.Stats ?? new TuningStats(),
                     Installed = x => string.Equals(ChassisApi.InstalledPart(x, slot), id, StringComparison.OrdinalIgnoreCase),
@@ -87,16 +88,16 @@ namespace MarcosBodyshop.Builtin
         private static bool Empty(string slot) => slot == "turbo" || slot == "booster";
 
         private static void Stage(string id, string slot, string label, int price, TuningStats stats)
-            => ChassisApi.RegisterTuningPart(new TuningPart { Id = id, Slot = slot, Label = label, Price = price, Stats = stats });
+            => ChassisApi.RegisterTuningPart(new TuningPart { Id = id, Slot = slot, Label = L10n.T(label), Price = price, Stats = stats });
 
         internal static string KeyName(UnityEngine.KeyCode k)
         {
             switch (k)
             {
-                case UnityEngine.KeyCode.LeftControl: return "Left Ctrl";
-                case UnityEngine.KeyCode.RightControl: return "Right Ctrl";
-                case UnityEngine.KeyCode.LeftShift: return "Left Shift";
-                case UnityEngine.KeyCode.LeftAlt: return "Left Alt";
+                case UnityEngine.KeyCode.LeftControl: return L10n.T("Left Ctrl");
+                case UnityEngine.KeyCode.RightControl: return L10n.T("Right Ctrl");
+                case UnityEngine.KeyCode.LeftShift: return L10n.T("Left Shift");
+                case UnityEngine.KeyCode.LeftAlt: return L10n.T("Left Alt");
                 default: return k.ToString();
             }
         }

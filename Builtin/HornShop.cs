@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Chassis.Api;
+using DooDesch.Localization;
 using Il2CppScheduleOne.Vehicles;
 using MarcosBodyshop.Api;
 using MarcosBodyshop.Config;
@@ -48,9 +49,9 @@ namespace MarcosBodyshop.Builtin
 
             BodyshopApi.RegisterCategory(new BodyshopCategory
             {
-                Id = "horn", Label = "Horn", Icon = "horn", Order = 250,
+                Id = "horn", Label = L10n.T("Horn"), Icon = "horn", Order = 250,
                 Camera = Shots.Front,
-                Note = v => { string h = ChassisApi.GetTuning(v, "horn"); if (h == null) return "Stock"; foreach (var x in All) if (x.Name == h) return x.Label; return "Custom"; },
+                Note = v => { string h = ChassisApi.GetTuning(v, "horn"); if (h == null) return L10n.T("Stock"); foreach (var x in All) if (x.Name == h) return L10n.T(x.Label); return L10n.T("Custom"); },
                 Entries = Entries,
             });
         }
@@ -60,8 +61,8 @@ namespace MarcosBodyshop.Builtin
             yield return new BodyshopEntry
             {
                 Id = "stock",
-                Label = "Stock",
-                Text = "Back to stock. Free, no refund.",
+                Label = L10n.T("Stock"),
+                Text = L10n.T("Back to stock. Free, no refund."),
                 Price = 0,
                 Installed = x => ChassisApi.GetTuning(x, "horn") == null,
                 Preview = x => ChassisApi.PreviewTuning(x, "horn", ""),
@@ -75,8 +76,8 @@ namespace MarcosBodyshop.Builtin
                 yield return new BodyshopEntry
                 {
                     Id = name,
-                    Label = h.Label,
-                    Text = "Hold G to honk.",
+                    Label = L10n.T(h.Label),
+                    Text = L10n.T("Hold G to honk."),
                     Price = Prefs.Price("horn", 150),
                     Installed = x => string.Equals(ChassisApi.GetTuning(x, "horn"), name, StringComparison.OrdinalIgnoreCase),
                     Preview = x => { ChassisApi.PreviewTuning(x, "horn", name); Play(x, name); },

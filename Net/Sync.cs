@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using DooDesch.Localization;
 using MarcosBodyshop.Api;
 using MarcosBodyshop.Shop;
 using UnityEngine;
@@ -61,7 +62,7 @@ namespace MarcosBodyshop.Net
             if (_holders.TryGetValue(garage, out string holder) && holder != player && ShopNet.PlayerByCode(holder) != null)
             {
                 Core.Log.Msg("[Net] " + ShopNet.NameOf(player) + " asked for garage '" + garage + "', which " + ShopNet.NameOf(holder) + " is using - refused.");
-                Answer(garage, player, vehicleId, false, ShopNet.NameOf(holder) + " is using the garage.");
+                Answer(garage, player, vehicleId, false, ShopNet.NameOf(holder) + IsUsing);
                 return;
             }
             _holders[garage] = player;
@@ -115,7 +116,7 @@ namespace MarcosBodyshop.Net
             var e = Registry.Entry(c, v, entryId);
             if (e == null) return "This part is not available on the host.";
             int price = Prices.Of(e, v);
-            if (paid < price) return "The price changed to " + price + ".";
+            if (paid < price) return PriceChanged + price.ToString(CultureInfo.InvariantCulture) + ".";
             string blocked = Prices.BlockedOf(e, v);
             if (blocked != null) return blocked;
             if (e.Apply == null) return "This part cannot be fitted.";
@@ -124,6 +125,24 @@ namespace MarcosBodyshop.Net
         }
 
         private static string Clean(string s) => s.Replace('|', '/');
+
+        private const string PriceChanged = "The price changed to ";
+        private const string IsUsing = " is using the garage.";
+
+        /// <summary>
+        /// A refusal the host sent, in the receiver's language. The host answers in English (its own refusals and the
+        /// built-in entries' Apply reasons), so every player reads it in their own language; the two lines with a value
+        /// in them are taken apart first. A reason a mod wrote in its own words matches no key and stays as it came.
+        /// </summary>
+        internal static string Heard(string reason)
+        {
+            if (string.IsNullOrEmpty(reason)) return reason ?? "";
+            if (reason.StartsWith(PriceChanged, StringComparison.Ordinal) && reason.EndsWith(".", StringComparison.Ordinal))
+                return L10n.T("The price changed to {0}.", reason.Substring(PriceChanged.Length, reason.Length - PriceChanged.Length - 1));
+            if (reason.EndsWith(IsUsing, StringComparison.Ordinal) && reason.Length > IsUsing.Length)
+                return L10n.T("{0} is using the garage.", reason.Substring(0, reason.Length - IsUsing.Length));
+            return L10n.T(reason);
+        }
 
         private static int I(string s) => int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int n) ? n : -1;
 

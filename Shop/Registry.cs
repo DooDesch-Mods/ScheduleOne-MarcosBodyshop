@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DooDesch.Localization;
 using Il2CppScheduleOne.DevUtilities;
 using Il2CppScheduleOne.Vehicles;
 using MarcosBodyshop.Api;
@@ -100,7 +101,7 @@ namespace MarcosBodyshop.Shop
                     if (r != null) return r;
                 }
             try { return c.Locked?.Invoke(v); }
-            catch (Exception e) { Core.Log.Error("[Api] Locked of category '" + c.Id + "' failed - shown locked: " + e.Message); return "Not available."; }
+            catch (Exception e) { Core.Log.Error("[Api] Locked of category '" + c.Id + "' failed - shown locked: " + e.Message); return L10n.T("Not available."); }
         }
 
         internal static List<BodyshopEntry> EntriesOf(BodyshopCategory c, LandVehicle v)
@@ -128,7 +129,7 @@ namespace MarcosBodyshop.Shop
         {
             bay = null;
             var g = Garage(garageId);
-            if (g == null) { reason = "There is no garage '" + garageId + "'."; return null; }
+            if (g == null) { reason = L10n.T("There is no garage '{0}'.", garageId); return null; }
             LandVehicle occupied = null;
             foreach (var b in g.Bays)
             {
@@ -145,7 +146,7 @@ namespace MarcosBodyshop.Shop
                 reason = null;
                 return v;
             }
-            reason = occupied != null ? "Someone is in the vehicle" : "Vehicle must be parked inside the shop";
+            reason = L10n.T(occupied != null ? "Someone is in the vehicle" : "Vehicle must be parked inside the shop");
             return null;
         }
 

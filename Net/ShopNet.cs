@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using DooDesch.Localization;
 using Il2CppFishNet;
 using Il2CppScheduleOne.DevUtilities;
 using Il2CppScheduleOne.PlayerScripts;
@@ -151,7 +152,7 @@ namespace MarcosBodyshop.Net
         internal static string NameOf(string code)
         {
             var p = PlayerByCode(code);
-            return p != null ? p.PlayerName : "Another player";
+            return p != null ? p.PlayerName : L10n.T("Another player");
         }
 
         /// <summary>One message: an op and its string arguments. Requests start with "req.", state does not.</summary>

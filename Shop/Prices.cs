@@ -1,5 +1,6 @@
 using System;
 using Chassis.Api;
+using DooDesch.Localization;
 using Il2CppScheduleOne.Vehicles;
 using MarcosBodyshop.Api;
 using UnityEngine;
@@ -38,7 +39,7 @@ namespace MarcosBodyshop.Shop
 
         // ---- stat bars ------------------------------------------------------------------------------------------
 
-        internal static readonly string[] StatNames = { "Speed", "Acceleration", "Braking", "Handling" };
+        internal static string[] StatNames => new[] { L10n.T("Speed"), L10n.T("Acceleration"), L10n.T("Braking"), L10n.T("Handling") };
 
         /// <summary>The four bars for driving factors, each 0..1, stock at 0.45.</summary>
         internal static float[] Bars(TuningStats s)
