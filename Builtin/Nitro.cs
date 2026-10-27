@@ -48,7 +48,7 @@ namespace MarcosBodyshop.Builtin
 
         internal static void Register()
         {
-            ChassisApi.RegisterTuningPart(new TuningPart { Id = PartId, Slot = "booster", Label = L10n.T("Nitrous Kit"), Price = 5000 });
+            ChassisApi.RegisterTuningPart(new TuningPart { Id = PartId, Slot = "booster", Label = L10n.T("Nitrous Kit"), Price = 6250 });
             Hint(L10n.T("Nitro"));
         }
 

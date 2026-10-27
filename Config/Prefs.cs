@@ -14,31 +14,36 @@ namespace MarcosBodyshop.Config
         private static MelonPreferences_Category _cat;
         private static readonly Dictionary<string, MelonPreferences_Entry<int>> _prices = new Dictionary<string, MelonPreferences_Entry<int>>(StringComparer.OrdinalIgnoreCase);
 
-        // id -> (default, description). Part ids are the Chassis built-in part ids.
-        private static readonly (string id, int price, string what)[] Defaults =
+        // id -> (default, description, the default of 1.0.x). Part ids are the Chassis built-in part ids. The performance
+        // parts cost 25 % more than in 1.0.x; a price still at its old default moves to the new one.
+        private static readonly (string id, int price, string what, int was)[] Defaults =
         {
-            ("paint_factory", 100, "A factory colour (the game's own repaint)."),
-            ("paint_metallic", 250, "A metallic colour."),
-            ("paint_matte", 250, "A matte colour."),
-            ("paint_chrome", 375, "A chrome finish."),
-            ("xenon", 375, "Xenon headlights in a colour."),
-            ("neon", 375, "Underglow in a colour."),
-            ("neon_sides", 125, "Underglow on other sides (front and back, or the sides only)."),
-            ("horn", 150, "A horn."),
-            ("tint", 250, "Window tint."),
-            ("rims", 250, "Rim colour."),
-            ("smoke", 125, "Tyre smoke colour."),
-            ("engine_1", 500, "Engine Tune 1."), ("engine_2", 1250, "Engine Tune 2."), ("engine_3", 2500, "Engine Tune 3."),
-            ("brakes_1", 500, "Street Brakes."), ("brakes_2", 1250, "Sport Brakes."), ("brakes_3", 2500, "Race Brakes."),
-            ("transmission_1", 500, "Street Transmission."), ("transmission_2", 1250, "Sport Transmission."), ("transmission_3", 2500, "Race Transmission."),
-            ("suspension_1", 500, "Lowered Suspension."), ("suspension_2", 1000, "Street Suspension."),
-            ("suspension_3", 1750, "Sport Suspension."), ("suspension_4", 2500, "Competition Suspension."),
-            ("turbo", 3750, "Turbo Tuning."),
-            ("tyres_drift", 750, "Drift Tyres."),
-            ("bodyshop_steering_1", 750, "Quick Steering Rack."), ("bodyshop_steering_2", 1750, "Race Steering Rack."),
-            ("bodyshop_weight_1", 1000, "Lightweight Panels."), ("bodyshop_weight_2", 2500, "Carbon Body."),
-            ("bodyshop_nitro", 5000, "Nitrous Kit."),
+            ("paint_factory", 100, "A factory colour (the game's own repaint).", 100),
+            ("paint_metallic", 250, "A metallic colour.", 250),
+            ("paint_matte", 250, "A matte colour.", 250),
+            ("paint_chrome", 375, "A chrome finish.", 375),
+            ("xenon", 375, "Xenon headlights in a colour.", 375),
+            ("neon", 375, "Underglow in a colour.", 375),
+            ("neon_sides", 125, "Underglow on other sides (front and back, or the sides only).", 125),
+            ("horn", 150, "A horn.", 150),
+            ("tint", 250, "Window tint.", 250),
+            ("rims", 250, "Rim colour.", 250),
+            ("smoke", 125, "Tyre smoke colour.", 125),
+            ("engine_1", 625, "Engine Tune 1.", 500), ("engine_2", 1575, "Engine Tune 2.", 1250), ("engine_3", 3125, "Engine Tune 3.", 2500),
+            ("brakes_1", 625, "Street Brakes.", 500), ("brakes_2", 1575, "Sport Brakes.", 1250), ("brakes_3", 3125, "Race Brakes.", 2500),
+            ("transmission_1", 625, "Street Transmission.", 500), ("transmission_2", 1575, "Sport Transmission.", 1250), ("transmission_3", 3125, "Race Transmission.", 2500),
+            ("suspension_1", 625, "Lowered Suspension.", 500), ("suspension_2", 1250, "Street Suspension.", 1000),
+            ("suspension_3", 2200, "Sport Suspension.", 1750), ("suspension_4", 3125, "Competition Suspension.", 2500),
+            ("turbo", 4700, "Turbo Tuning.", 3750),
+            ("tyres_drift", 950, "Drift Tyres.", 750),
+            ("bodyshop_steering_1", 950, "Quick Steering Rack.", 750), ("bodyshop_steering_2", 2200, "Race Steering Rack.", 1750),
+            ("bodyshop_weight_1", 1250, "Lightweight Panels.", 1000), ("bodyshop_weight_2", 3125, "Carbon Body.", 2500),
+            ("bodyshop_nitro", 6250, "Nitrous Kit.", 5000),
         };
+
+        /// <summary>Seconds an empty nitro tank needed to refill in 1.0.x.</summary>
+        private const float OldNitroRecharge = 30f;
+        internal const float DefaultNitroRecharge = 90f;
 
         private static MelonPreferences_Entry<KeyCode> _nitroKey;
         private static MelonPreferences_Entry<float> _nitroBoost, _nitroSeconds, _nitroRecharge;
@@ -50,17 +55,28 @@ namespace MarcosBodyshop.Config
         /// <summary>Seconds a full tank lasts.</summary>
         internal static float NitroSeconds => Mathf.Max(0.5f, _nitroSeconds?.Value ?? 8f);
         /// <summary>Seconds an empty tank needs to fill up again.</summary>
-        internal static float NitroRecharge => Mathf.Max(1f, _nitroRecharge?.Value ?? 30f);
+        internal static float NitroRecharge => Mathf.Max(1f, _nitroRecharge?.Value ?? DefaultNitroRecharge);
 
         internal static void Init()
         {
             _cat = MelonPreferences.CreateCategory("MarcosBodyshop", "Marco's Bodyshop");
+            int moved = 0;
             foreach (var d in Defaults)
-                _prices[d.id] = _cat.CreateEntry("Price_" + d.id, d.price, "Price " + d.id, d.what + " Whole dollars.");
+            {
+                var e = _cat.CreateEntry("Price_" + d.id, d.price, "Price " + d.id, d.what + " Whole dollars.");
+                if (e.Value == d.was && d.was != d.price) { e.Value = d.price; moved++; }
+                _prices[d.id] = e;
+            }
+            if (moved > 0) Core.Log.Msg("[Config] " + moved + " price(s) still at the 1.0.x default moved to the new default (performance parts +25 %).");
             _nitroKey = _cat.CreateEntry("NitroKey", KeyCode.LeftControl, "Nitro key", "Hold it while you drive a car with the Nitrous Kit.");
             _nitroBoost = _cat.CreateEntry("NitroBoost", 1.5f, "Nitro boost", "Pull and top speed while nitro burns, as a factor of the car's own (1.1 to 3).");
             _nitroSeconds = _cat.CreateEntry("NitroSeconds", 8f, "Nitro duration", "Seconds a full nitro tank lasts.");
-            _nitroRecharge = _cat.CreateEntry("NitroRechargeSeconds", 30f, "Nitro recharge", "Seconds an empty nitro tank needs to fill up again.");
+            _nitroRecharge = _cat.CreateEntry("NitroRechargeSeconds", DefaultNitroRecharge, "Nitro recharge", "Seconds an empty nitro tank needs to fill up again.");
+            if (Mathf.Approximately(_nitroRecharge.Value, OldNitroRecharge))
+            {
+                _nitroRecharge.Value = DefaultNitroRecharge;
+                Core.Log.Msg("[Config] NitroRechargeSeconds moved from the 1.0.x default " + OldNitroRecharge + " to " + DefaultNitroRecharge + ".");
+            }
             Core.Log.Msg("[Config] " + _prices.Count + " prices loaded; nitro on " + NitroKey + ", x" + NitroBoost.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
                 + " for " + NitroSeconds.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " s, refill " + NitroRecharge.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " s.");
         }
