@@ -21,7 +21,7 @@ namespace MarcosBodyshop.Shop
             "Fitted", "Removed", "Free", "Installed",
             "Unlocked. Removing and refitting is free.",
             "Pay once to unlock. Removing and refitting is free after that.",
-            "Not available.", "Already installed.", "Not enough cash.", "The garage sent bad data.",
+            "Not available.", "Already installed.", "Not enough money.", "The garage sent bad data.",
         };
 
         internal static string Root(string garageId, LandVehicle v)
@@ -30,7 +30,7 @@ namespace MarcosBodyshop.Shop
             var j = new Json().Open('{');
             j.Prop("garage", g?.Name ?? "Bodyshop");
             j.Prop("vehicle", v != null ? v.VehicleName : "");
-            j.Prop("cash", Payment.Cash());
+            j.Prop("cash", Payment.Balance());
             j.Key("text").Open('{');
             foreach (var en in PageText) j.Prop(en, L10n.T(en));
             j.Close('}');

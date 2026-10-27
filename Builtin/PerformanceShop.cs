@@ -30,10 +30,10 @@ namespace MarcosBodyshop.Builtin
         internal static void Register()
         {
             // Stages Chassis does not bring itself. No model and no fits: they go on every car.
-            Stage("bodyshop_steering_1", "steering", "Quick Steering Rack", 750, new TuningStats { Steer = 1.15f });
-            Stage("bodyshop_steering_2", "steering", "Race Steering Rack", 1750, new TuningStats { Steer = 1.3f });
-            Stage("bodyshop_weight_1", "weight", "Lightweight Panels", 1000, new TuningStats { Mass = 0.9f });
-            Stage("bodyshop_weight_2", "weight", "Carbon Body", 2500, new TuningStats { Mass = 0.8f });
+            Stage("bodyshop_steering_1", "steering", "Quick Steering Rack", 950, new TuningStats { Steer = 1.15f });
+            Stage("bodyshop_steering_2", "steering", "Race Steering Rack", 2200, new TuningStats { Steer = 1.3f });
+            Stage("bodyshop_weight_1", "weight", "Lightweight Panels", 1250, new TuningStats { Mass = 0.9f });
+            Stage("bodyshop_weight_2", "weight", "Carbon Body", 3125, new TuningStats { Mass = 0.8f });
             Nitro.Register();
 
             foreach (var s in Slots)

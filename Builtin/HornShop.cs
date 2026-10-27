@@ -11,9 +11,9 @@ using UnityEngine;
 namespace MarcosBodyshop.Builtin
 {
     /// <summary>
-    /// The Horn category: six horns for the Chassis "horn" key, which the driver sounds with G. Each is a CC0 recording
-    /// (THIRD-PARTY-NOTICES.md), cut to one honk and embedded as 16-bit mono PCM at 22050 Hz. Picking a horn in the menu
-    /// plays it once.
+    /// The Horn category: ten horns for the Chassis "horn" key, which the driver sounds with G. Four plain ones are
+    /// synthesised by <c>Assets/sounds/horns.py</c>, six fun ones are CC0 recordings (THIRD-PARTY-NOTICES.md) cut to one
+    /// honk; all are embedded as 16-bit mono PCM at 22050 Hz. Picking a horn in the menu plays it once, Stock included.
     /// </summary>
     internal static class HornShop
     {
@@ -21,6 +21,10 @@ namespace MarcosBodyshop.Builtin
 
         private static readonly (string Name, string Label, string File)[] All =
         {
+            ("bodyshop_twotone", "Two-Tone Horn", "twotone"),
+            ("bodyshop_airhorn", "Air Horn", "airhorn"),
+            ("bodyshop_beep", "Short Beep", "beep"),
+            ("bodyshop_eurofanfare", "Euro Fanfare", "eurofanfare"),
             ("bodyshop_clown", "Clown Horn", "clown"),
             ("bodyshop_duck", "Rubber Duck", "duck"),
             ("bodyshop_train", "Freight Train", "train"),
@@ -65,7 +69,7 @@ namespace MarcosBodyshop.Builtin
                 Text = L10n.T("Back to stock. Free, no refund."),
                 Price = 0,
                 Installed = x => ChassisApi.GetTuning(x, "horn") == null,
-                Preview = x => ChassisApi.PreviewTuning(x, "horn", ""),
+                Preview = x => { ChassisApi.PreviewTuning(x, "horn", ""); PlayStock(x); },
                 EndPreview = x => ChassisApi.EndPreview(x, "horn"),
                 Apply = x => ChassisApi.SetTuning(x, "horn", "") ? null : "The garage could not do it.",
             };
@@ -97,6 +101,19 @@ namespace MarcosBodyshop.Builtin
                 Core.Log.Msg("[Horn] preview of '" + name + "' played.");
             }
             catch (Exception e) { Core.Log.Warning("[Horn] the preview of '" + name + "' could not play: " + e.Message); }
+        }
+
+        /// <summary>The car's own horn once, the one it has without parts; Chassis owns that clip.</summary>
+        private static void PlayStock(LandVehicle v)
+        {
+            try
+            {
+                var clip = ChassisApi.HornClip(v, true);
+                if (clip == null) { Core.Log.Warning("[Horn] Chassis has no stock horn clip to play in the preview."); return; }
+                Shop.Sounds.Horn(clip, v.transform.TransformPoint(new Vector3(0f, 0.6f, 1.8f)));
+                Core.Log.Msg("[Horn] preview of the stock horn played.");
+            }
+            catch (Exception e) { Core.Log.Warning("[Horn] the preview of the stock horn could not play: " + e.Message); }
         }
 
         // ---- clips -------------------------------------------------------------------------------------------------

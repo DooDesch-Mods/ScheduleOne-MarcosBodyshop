@@ -23,13 +23,15 @@ over the car, the camera moves to the part you look at, and the car shows each c
 - **Second Paint** - the trim in its own colour, on vehicles whose model has one (the RV of RV Repair Van).
 - **Lights & Looks** - xenon headlights, underglow (all around, sides only, or front and back), window tint,
   rim colour and tyre smoke, each in colours.
-- **Horn** - clown horn, rubber duck, freight train, fanfare, La Cucaracha and a bicycle horn. Hold G to honk.
+- **Horn** - two-tone horn, air horn, short beep, Euro fanfare, clown horn, rubber duck, freight train, fanfare, La Cucaracha and a bicycle horn. Hold G to honk.
 - **Engine, Brakes, Transmission, Suspension, Steering, Weight** - two to four stages each, with bars for speed,
   acceleration, braking and handling.
-- **Nitro** - hold Left Ctrl for a boost with a nitrous rush and blue flames at the exhaust. The tank refills by itself.
+- **Nitro** - hold Left Ctrl for a boost with a nitrous rush and blue flames at the exhaust. The stamina bar shows
+  the tank, which refills by itself in 90 seconds.
 - **Turbo** and **Drift Tyres**.
 
-Stock is always free. A part you replace is not refunded.
+Parts are paid from your bank balance, like Marco's respray. Stock is always free. A part you replace is not
+refunded.
 
 A vehicle too big for the hall parks on the lot in front of it.
 
@@ -76,7 +78,7 @@ The tuning is saved by Chassis and stays on the cars without this mod.
 
 - [MelonLoader](https://melonwiki.xyz/) 0.7.3 or newer
 - [S1API](https://thunderstore.io/c/schedule-i/p/ifBars/S1API_Forked/) 3.2.1 or newer
-- [Chassis](https://thunderstore.io/c/schedule-i/p/DooDesch/Chassis/) 1.7.1 or newer
+- [Chassis](https://thunderstore.io/c/schedule-i/p/DooDesch/Chassis/) 1.8.0 or newer
 - [Sideload](https://thunderstore.io/c/schedule-i/p/DooDesch/Sideload/) 1.35.0 or newer
 
 ## Credits

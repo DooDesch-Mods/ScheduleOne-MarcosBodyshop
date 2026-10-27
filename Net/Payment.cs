@@ -6,9 +6,9 @@ using MarcosBodyshop.Shop;
 namespace MarcosBodyshop.Net
 {
     /// <summary>
-    /// The buyer pays. Cash is per player in Schedule I, so the host cannot take a client's money: the buyer charges
-    /// itself before it sends the purchase, and the host answers with <c>settle</c> - kept when it applied the part,
-    /// refunded when it refused. The ticket is a random id the buyer keeps until the answer arrives; every peer hears
+    /// The buyer pays from the bank balance, as vanilla Marco's repaint does (<c>MoneyManager.CreateOnlineTransaction</c>).
+    /// The buyer charges itself before it sends the purchase, and the host answers with <c>settle</c> - kept when it
+    /// applied the part, refunded to the balance when it refused. The ticket is a random id the buyer keeps until the answer arrives; every peer hears
     /// every answer, only the ticket holder acts on it.
     /// </summary>
     internal static class Payment
@@ -16,26 +16,29 @@ namespace MarcosBodyshop.Net
         private static readonly Dictionary<int, int> _pending = new Dictionary<int, int>();
         private static readonly Random _rng = new Random();
 
-        internal static int Cash()
+        private const string Transaction = "Marco's Bodyshop";
+
+        /// <summary>The bank balance in whole dollars.</summary>
+        internal static int Balance()
         {
-            try { return (int)Math.Floor(S1API.Money.Money.GetCashBalance()); }
-            catch (Exception e) { Core.Log.Error("[Pay] reading the cash balance failed: " + e.Message); return 0; }
+            try { return (int)Math.Floor(S1API.Money.Money.GetOnlineBalance()); }
+            catch (Exception e) { Core.Log.Error("[Pay] reading the bank balance failed: " + e.Message); return 0; }
         }
 
-        /// <summary>Takes the price from this player's cash and opens a ticket; 0 when the player is short (nothing taken).</summary>
+        /// <summary>Takes the price from the bank balance and opens a ticket; 0 when the balance is short (nothing taken).</summary>
         internal static int Charge(int amount, string what)
         {
             if (amount < 0) amount = 0;
-            if (Cash() < amount) { Core.Log.Msg("[Pay] " + what + " refused - short of $" + amount + "."); return 0; }
+            if (Balance() < amount) { Core.Log.Msg("[Pay] " + what + " refused - short of $" + amount + "."); return 0; }
             int ticket;
             do { ticket = _rng.Next(1, int.MaxValue); } while (_pending.ContainsKey(ticket));
             if (amount > 0)
             {
-                try { S1API.Money.Money.ChangeCashBalance(-amount, true, true); }
+                try { S1API.Money.Money.CreateOnlineTransaction(Transaction, -amount, 1f, what); }
                 catch (Exception e) { Core.Log.Error("[Pay] taking $" + amount + " for " + what + " failed - not bought: " + e.Message); return 0; }
             }
             _pending[ticket] = amount;
-            Core.Log.Msg("[Pay] " + what + ": paid $" + amount + " (ticket " + ticket + ").");
+            Core.Log.Msg("[Pay] " + what + ": paid $" + amount + " from the bank balance (ticket " + ticket + ").");
             return ticket;
         }
 
@@ -48,7 +51,7 @@ namespace MarcosBodyshop.Net
             {
                 if (amount > 0)
                 {
-                    try { S1API.Money.Money.ChangeCashBalance(amount, true, true); }
+                    try { S1API.Money.Money.CreateOnlineTransaction(Transaction + " refund", amount, 1f, string.Empty); }
                     catch (Exception e) { Core.Log.Error("[Pay] refunding $" + amount + " (ticket " + ticket + ") failed: " + e.Message); }
                 }
                 Core.Log.Warning("[Pay] host refused ticket " + ticket + " (" + reason + ") - refunded $" + amount + ".");

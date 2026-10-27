@@ -109,7 +109,7 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <!-- The horns and the install sound (CC0, see THIRD-PARTY-NOTICES.md) and the nitro sounds (own, Assets/sounds/nitro.py): 16-bit mono PCM at 22050 Hz. -->
+  <!-- The horns and the install sound (CC0, see THIRD-PARTY-NOTICES.md), the plain horns (own, Assets/sounds/horns.py) and the nitro sounds (own, Assets/sounds/nitro.py): 16-bit mono PCM at 22050 Hz. -->
   <ItemGroup>
     <EmbeddedResource Include="Assets/sounds/*.pcm">
       <LogicalName>MarcosBodyshop.Assets.sounds.%(Filename)%(Extension)</LogicalName>

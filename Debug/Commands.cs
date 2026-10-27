@@ -19,7 +19,7 @@ namespace MarcosBodyshop.Debug
     /// <item><c>bodyshop key up|down|enter|back</c> - a key to the page.</item>
     /// <item><c>bodyshop list cat</c>, <c>pick cat/entry</c>, <c>buy cat/entry</c> - the page's calls, without the page.</item>
     /// <item><c>bodyshop cam ex ey ez tx ty tz</c> - hold the camera there (to measure shots).</item>
-    /// <item><c>bodyshop cash N</c> - add N to the local player's cash.</item>
+    /// <item><c>bodyshop cash N</c> - add N to the bank balance.</item>
     /// <item><c>bodyshop radio x y z yaw</c> - move the workshop radio (to find its spot).</item>
     /// <item><c>bodyshop park x z yaw</c> - where the yard puts a vehicle on the next open (to find the spot).</item>
     /// <item><c>bodyshop nitro [seconds]</c> - burn nitro in the driven car without the key; no number shows the state.</item>
@@ -72,8 +72,8 @@ namespace MarcosBodyshop.Debug
                 }
                 case "cash":
                     if (!int.TryParse(a, NumberStyles.Integer, CultureInfo.InvariantCulture, out int n)) { Say("cash needs a whole number"); break; }
-                    S1API.Money.Money.ChangeCashBalance(n, true, false);
-                    Say("cash +" + n);
+                    S1API.Money.Money.CreateOnlineTransaction("Bodyshop debug", n, 1f, string.Empty);
+                    Say("bank balance +" + n);
                     break;
                 case "nitro":
                     if (a.Length > 0 && float.TryParse(a, NumberStyles.Float, CultureInfo.InvariantCulture, out float secs)) { Builtin.Nitro.ForceUntil = Time.time + secs; Say("nitro held for " + a + " s"); }
