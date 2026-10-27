@@ -88,18 +88,31 @@ namespace MarcosBodyshop.Builtin
             return true;
         }
 
+        /// <summary>
+        /// An exhaust further than this ahead of the body's rear end is hidden under a body the car carries (the RV of
+        /// RV Repair Van rides on a Veeper, whose exhaust ends under the RV's middle): its flame moves back to the rear.
+        /// </summary>
+        private const float TuckedUnder = 0.6f, RearGap = 0.05f;
+
         /// <summary>One flame per exhaust; one at the rear underside when the car has no exhaust emitters.</summary>
         private static List<Transform> Build(LandVehicle lv, int id)
         {
             var list = new List<Transform>();
             if (!Materials()) return list;
+            var b = Shop.Session.LocalBox(lv);
+            int moved = 0;
             var fx = lv.GetComponentInChildren<VehicleFX>(true);
             if (fx != null && fx.exhaustFX != null)
                 foreach (var ps in fx.exhaustFX)
-                    if (ps != null) list.Add(Flame(lv, lv.transform, lv.transform.InverseTransformPoint(ps.transform.position)));
+                {
+                    if (ps == null) continue;
+                    Vector3 local = lv.transform.InverseTransformPoint(ps.transform.position);
+                    if (local.z - b.min.z > TuckedUnder) { local.z = b.min.z - RearGap; moved++; }
+                    list.Add(Flame(lv, lv.transform, local));
+                }
+            if (moved > 0) Core.Log.Msg("[Flames] net " + id + " (" + lv.VehicleName + "): " + moved + " exhaust(s) end under the body - their flames moved back to its rear at z " + b.min.z.ToString("0.00") + ".");
             if (list.Count == 0)
             {
-                var b = Shop.Session.LocalBox(lv);
                 var at = lv.transform.TransformPoint(new Vector3(b.center.x + b.extents.x * 0.5f, b.min.y + 0.25f, b.min.z));
                 list.Add(Flame(lv, lv.transform, lv.transform.InverseTransformPoint(at)));
                 Core.Log.Warning("[Flames] net " + id + " (" + lv.VehicleName + ") has no exhaust emitters - one flame at the rear underside.");
