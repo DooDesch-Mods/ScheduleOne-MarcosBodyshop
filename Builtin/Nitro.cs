@@ -16,7 +16,7 @@ namespace MarcosBodyshop.Builtin
     /// <summary>
     /// The Nitrous Kit (booster slot): while the driver holds the nitro key and drives forward, the car pulls harder and
     /// runs faster by <see cref="Prefs.NitroBoost"/>, from a tank that empties in <see cref="Prefs.NitroSeconds"/> and
-    /// refills by itself. Blue flames burn and the nitro hisses at the car's exhaust on every machine
+    /// refills by itself. The tank shows in the game's stamina bar (<see cref="NitroBar"/>). Blue flames burn and the nitro hisses at the car's exhaust on every machine
     /// (<see cref="Flames"/>, <see cref="NitroSound"/>); the driver's on/off goes through the
     /// host (<c>req.nitro vehicle 1|0</c> -> <c>nitro vehicle 1|0</c>). The wheelchair of Rollin keeps its own nitro.
     /// </summary>
@@ -38,7 +38,6 @@ namespace MarcosBodyshop.Builtin
         private static float _factor = 1f;
         private static bool _on;
         private static float _sinceNitro = RechargeDelay;
-        private static int _shownStep = -1;
         private static readonly Dictionary<int, float> _tank = new Dictionary<int, float>();
         /// <summary>Physics steps the boost drove the car since the last burn started.</summary>
         private static int _boostSteps;
@@ -65,8 +64,8 @@ namespace MarcosBodyshop.Builtin
             _factor = 1f;
             _on = false;
             _sinceNitro = RechargeDelay;
-            _shownStep = -1;
             _tank.Clear();
+            NitroBar.Reset();
             ForceUntil = -1f;
             Flames.Reset();
         }
@@ -89,12 +88,11 @@ namespace MarcosBodyshop.Builtin
                 if (_on && _car >= 0) Send(_car, false);
                 _on = false;
                 _factor = 1f;
-                _shownStep = -1;
                 if (id >= 0) Core.Log.Msg("[Nitro] driving net " + id + " with the Nitrous Kit, tank " + Pct(Tank(id)) + ", key " + Prefs.NitroKey + ".");
                 else if (_car >= 0) Core.Log.Msg("[Nitro] no longer driving net " + _car + ".");
                 _car = id;
             }
-            if (id < 0) return;
+            if (id < 0) { NitroBar.Hide(); return; }
 
             float dt = Time.deltaTime;
             bool forced = Time.time < ForceUntil;
@@ -122,9 +120,7 @@ namespace MarcosBodyshop.Builtin
                     + (want ? "" : ", boosted " + _boostSteps + " physics steps") + ".");
             }
             _factor = Mathf.MoveTowards(_factor, _on ? Prefs.NitroBoost : 1f, dt * FactorRate);
-
-            int step = Mathf.RoundToInt(tank * 10f);
-            if (step != _shownStep) { _shownStep = step; Hint(L10n.T("Nitro {0}%", step * 10)); }
+            NitroBar.Show(tank);
         }
 
         private static void Send(int id, bool on) => ShopNet.ToHost("req.nitro", id.ToString(CultureInfo.InvariantCulture), on ? "1" : "0");
