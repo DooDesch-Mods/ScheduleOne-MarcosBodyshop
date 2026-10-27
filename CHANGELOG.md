@@ -4,6 +4,22 @@ All notable changes to Marco's Bodyshop are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to Semantic Versioning.
 
+## [1.1.0] - 2026-10-27
+
+### Added
+- Four new plain horns: Two-Tone, Air Horn, Short Beep and Euro Fanfare.
+- Nitro shows in the stamina bar in blue.
+
+### Changed
+- Parts are paid from your bank balance, like Marco's respray.
+- Performance parts cost 25 % more. Paint, lights and horns keep their prices.
+- Nitro takes 90 seconds to refill.
+- Needs Chassis 1.8.0.
+
+### Fixed
+- The stock horn plays in the menu.
+- The nitro flames come out at the back of the RV, not under it.
+
 ## [1.0.1] - 2026-10-27
 
 ### Added
