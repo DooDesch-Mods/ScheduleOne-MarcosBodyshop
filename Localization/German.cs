@@ -142,7 +142,7 @@ namespace MarcosBodyshop.Localization
                 ["One moment."] = "Einen Moment.",
                 ["Not available."] = "Nicht verfügbar.",
                 ["Already installed."] = "Schon eingebaut.",
-                ["Not enough cash."] = "Nicht genug Geld.",
+                ["Not enough money."] = "Nicht genug Geld.",
                 ["The garage refused."] = "Die Werkstatt hat abgelehnt.",
                 ["{0} fitted."] = "{0} eingebaut.",
                 ["{0} removed."] = "{0} ausgebaut.",

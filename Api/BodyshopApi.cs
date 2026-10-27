@@ -12,7 +12,7 @@ namespace MarcosBodyshop.Api
     /// found again on the host by garage, category and entry id.
     ///
     /// The flow: the player opens the menu for the vehicle in a bay. Picking an entry previews it on the player's
-    /// machine. Buying takes the price from the buyer's cash, the host runs <see cref="BodyshopEntry.Apply"/> and
+    /// machine. Buying takes the price from the buyer's bank balance, the host runs <see cref="BodyshopEntry.Apply"/> and
     /// syncs it, and the buyer gets the money back when the host refuses. Leaving the menu ends every preview. One
     /// player at a time uses a garage.
     /// </summary>

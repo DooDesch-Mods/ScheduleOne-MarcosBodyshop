@@ -310,9 +310,9 @@ namespace MarcosBodyshop.Shop
             string blocked = Prices.BlockedOf(e, _vehicle);
             if (blocked != null) return blocked;
             int price = Prices.Of(e, _vehicle);
-            if (Payment.Cash() < price) return L10n.T("Not enough cash.");
+            if (Payment.Balance() < price) return L10n.T("Not enough money.");
             int ticket = Payment.Charge(price, c.Id + "/" + e.Id + " on " + _vehicle.VehicleName);
-            if (ticket == 0) return L10n.T("Not enough cash.");
+            if (ticket == 0) return L10n.T("Not enough money.");
             _busy = true;
             ShopNet.ToHost("req.buy", _garage, _vehicleId.ToString(CultureInfo.InvariantCulture), c.Id, e.Id,
                            Payment.Ticket(ticket), price.ToString(CultureInfo.InvariantCulture), ShopNet.MyCode());
@@ -568,7 +568,7 @@ namespace MarcosBodyshop.Shop
             if (Time.unscaledTime >= _nextCash)
             {
                 _nextCash = Time.unscaledTime + 0.25f;
-                int cash = Payment.Cash();
+                int cash = Payment.Balance();
                 if (cash != _shownCash) { _shownCash = cash; _surface?.Emit("cash", cash.ToString(CultureInfo.InvariantCulture)); }
             }
         }

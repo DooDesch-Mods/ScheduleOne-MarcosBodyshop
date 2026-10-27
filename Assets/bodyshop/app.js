@@ -245,7 +245,7 @@ function enter() {
   var e = r.entry;
   if (e.installed && !e.toggle) { flash(t('Already installed.')); return; }
   if (e.blocked) { flash(e.blocked); return; }
-  if (e.price > cash) { flash(t('Not enough cash.')); return; }
+  if (e.price > cash) { flash(t('Not enough money.')); return; }
   var why = call('shop.buy', lv.cat.id + '/' + e.id);
   if (why) flash(why);
 }
