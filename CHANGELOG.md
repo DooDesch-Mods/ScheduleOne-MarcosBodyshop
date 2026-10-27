@@ -4,6 +4,12 @@ All notable changes to Marco's Bodyshop are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to Semantic Versioning.
 
+## [1.1.1] - 2026-10-27
+
+### Fixed
+- Marco's menu no longer fades out and does nothing without Sideload 1.35.0 or newer. Marco now says that it is missing.
+- A notice now points to `MelonLoader/Latest.log` when the menu fails to open or load.
+
 ## [1.1.0] - 2026-10-27
 
 ### Added
