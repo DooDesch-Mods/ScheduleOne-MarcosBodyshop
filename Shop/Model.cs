@@ -1,5 +1,6 @@
 using System;
 using Chassis.Api;
+using DooDesch.Localization;
 using Il2CppScheduleOne.Vehicles;
 using MarcosBodyshop.Api;
 using MarcosBodyshop.Net;
@@ -9,6 +10,20 @@ namespace MarcosBodyshop.Shop
     /// <summary>The page's data: the categories of a vehicle, and the entries of one category, as JSON.</summary>
     internal static class Model
     {
+        /// <summary>
+        /// The page's own words. The page cannot reach L10n, so the root model carries them as an English-to-shown
+        /// table; the page looks a word up by its English text and shows the English when the table lacks it.
+        /// </summary>
+        private static readonly string[] PageText =
+        {
+            "Browse", "Buy", "Back",
+            "Nothing here", "more above", "more below",
+            "Fitted", "Removed", "Free", "Installed",
+            "Unlocked. Removing and refitting is free.",
+            "Pay once to unlock. Removing and refitting is free after that.",
+            "Not available.", "Already installed.", "Not enough cash.", "The garage sent bad data.",
+        };
+
         internal static string Root(string garageId, LandVehicle v)
         {
             var g = Registry.Garage(garageId);
@@ -16,6 +31,9 @@ namespace MarcosBodyshop.Shop
             j.Prop("garage", g?.Name ?? "Bodyshop");
             j.Prop("vehicle", v != null ? v.VehicleName : "");
             j.Prop("cash", Payment.Cash());
+            j.Key("text").Open('{');
+            foreach (var en in PageText) j.Prop(en, L10n.T(en));
+            j.Close('}');
             j.Key("items").Open('[');
             if (v != null)
                 foreach (var s in Registry.CategoriesFor(garageId, v))

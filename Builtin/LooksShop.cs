@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Chassis.Api;
+using DooDesch.Localization;
 using Il2CppScheduleOne.Vehicles;
 using MarcosBodyshop.Api;
 using MarcosBodyshop.Config;
@@ -31,9 +32,9 @@ namespace MarcosBodyshop.Builtin
         {
             BodyshopApi.RegisterCategory(new BodyshopCategory
             {
-                Id = "looks", Label = "Lights & Looks", Icon = "looks", Order = 200,
+                Id = "looks", Label = L10n.T("Lights & Looks"), Icon = "looks", Order = 200,
                 Camera = Shots.Front,
-                Note = v => { int n = 0; foreach (var k in new[] { "xenon", "neon", "tint", "rims", "smoke" }) if (ChassisApi.GetTuning(v, k) != null) n++; return n == 0 ? "Stock" : n + " fitted"; },
+                Note = v => { int n = 0; foreach (var k in new[] { "xenon", "neon", "tint", "rims", "smoke" }) if (ChassisApi.GetTuning(v, k) != null) n++; return n == 0 ? L10n.T("Stock") : L10n.T("{0} fitted", n); },
                 Entries = Entries,
             });
         }
@@ -114,9 +115,9 @@ namespace MarcosBodyshop.Builtin
             return new BodyshopEntry
             {
                 Id = "neon_" + name.Replace(" ", "").ToLowerInvariant(),
-                Group = "Underglow",
-                Label = name,
-                Text = "Neon under the body.",
+                Group = L10n.T("Underglow"),
+                Label = L10n.T(name),
+                Text = L10n.T("Neon under the body."),
                 Price = Prefs.Price("neon", 250),
                 Swatch = "#" + hex,
                 Installed = x => string.Equals(NeonColour(ChassisApi.GetTuning(x, "neon")), hex, StringComparison.OrdinalIgnoreCase),
@@ -134,12 +135,12 @@ namespace MarcosBodyshop.Builtin
             return new BodyshopEntry
             {
                 Id = "neonsides_" + sides,
-                Group = "Underglow Sides",
-                Label = name,
-                Text = text,
+                Group = L10n.T("Underglow Sides"),
+                Label = L10n.T(name),
+                Text = L10n.T(text),
                 Price = Prefs.Price("neon_sides", 125),
                 Installed = x => ChassisApi.GetTuning(x, "neon") != null && NeonSidesOf(ChassisApi.GetTuning(x, "neon")) == sides,
-                Blocked = x => ChassisApi.GetTuning(x, "neon") == null ? "Fit underglow first." : null,
+                Blocked = x => ChassisApi.GetTuning(x, "neon") == null ? L10n.T("Fit underglow first.") : null,
                 Preview = x => { if (ChassisApi.GetTuning(x, "neon") != null) ChassisApi.PreviewTuning(x, "neon", With(x)); },
                 EndPreview = x => ChassisApi.EndPreview(x, "neon"),
                 Apply = x => ChassisApi.GetTuning(x, "neon") == null ? "Fit underglow first." : ChassisApi.SetTuning(x, "neon", With(x)) ? null : "The garage could not do it.",
@@ -153,9 +154,9 @@ namespace MarcosBodyshop.Builtin
             return new BodyshopEntry
             {
                 Id = key + "_" + name.Replace(" ", "").ToLowerInvariant(),
-                Group = group,
-                Label = name,
-                Text = text,
+                Group = L10n.T(group),
+                Label = L10n.T(name),
+                Text = L10n.T(text),
                 Price = Prefs.Price(key, 250),
                 Swatch = "#" + (swatchHex ?? hex.TrimStart('#')),
                 Installed = x => string.Equals(ChassisApi.GetTuning(x, key), value, StringComparison.OrdinalIgnoreCase),
@@ -169,9 +170,9 @@ namespace MarcosBodyshop.Builtin
         private static BodyshopEntry Stock(string group, string key) => new BodyshopEntry
         {
             Id = key + "_stock",
-            Group = group,
-            Label = "Stock",
-            Text = "Back to stock. Free, no refund.",
+            Group = L10n.T(group),
+            Label = L10n.T("Stock"),
+            Text = L10n.T("Back to stock. Free, no refund."),
             Price = 0,
             Installed = x => ChassisApi.GetTuning(x, key) == null,
             Preview = x => ChassisApi.PreviewTuning(x, key, ""),

@@ -82,7 +82,10 @@ body {
 .swatch { width: 22px; height: 22px; border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 3px; }
 .row.pick .swatch { border-color: rgba(0, 0, 0, 0.45); }
 
-.more { height: 22px; align-items: center; justify-content: center; background: var(--row); font-size: 14px; color: var(--muted); }
+/* "more below" and its kin: a row of the list, lower and muted, that nothing picks. */
+.row.more { height: 34px; font-size: 16px; color: var(--muted); }
+.row.more:hover { background: var(--row); }
+.row.more .label { text-align: center; }
 
 .detail {
   display: flex; flex-direction: column; gap: 12px;
@@ -94,16 +97,20 @@ body {
 .detail .warn { font-size: 18px; color: var(--short); }
 
 .stat { display: flex; flex-direction: row; align-items: center; gap: 14px; }
-.stat .name { width: 128px; font-size: 16px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.stat .name { width: 184px; font-size: 16px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
 .track { display: flex; flex-direction: row; flex: 1; height: 10px; background: #2A2E37; }
 .fill { height: 10px; background: #F2F3F5; }
 .gain { height: 10px; background: var(--accent); }
 .loss { height: 10px; background: var(--short); }
 
-/* Money and the car, top right, large enough to read against a bright sky. */
-.wallet { position: absolute; right: 56px; top: 56px; align-items: flex-end; }
-.cash { font-size: 46px; font-weight: bold; color: var(--cash); }
-.vehicle { font-size: 20px; color: var(--ink); letter-spacing: 1px; text-transform: uppercase; }
+/* Money and the car, top right, large enough to read against a bright sky. The column has a fixed width and its
+   lines fill it right-aligned, so the right edge stays 56px inside the screen whatever width the text measures at. */
+.wallet {
+  position: absolute; right: 56px; top: 56px; width: 640px;
+  display: flex; flex-direction: column; align-items: stretch;
+}
+.cash { font-size: 46px; font-weight: bold; color: var(--cash); text-align: right; white-space: nowrap; }
+.vehicle { font-size: 20px; color: var(--ink); letter-spacing: 1px; text-transform: uppercase; text-align: right; white-space: nowrap; }
 
 /* Key hints, bottom right. */
 .keys {

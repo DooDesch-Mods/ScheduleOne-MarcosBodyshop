@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Chassis.Api;
+using DooDesch.Localization;
 using Il2CppScheduleOne.DevUtilities;
 using Il2CppScheduleOne.Vehicles;
 using Il2CppScheduleOne.Vehicles.Modification;
@@ -34,14 +35,14 @@ namespace MarcosBodyshop.Builtin
         {
             BodyshopApi.RegisterCategory(new BodyshopCategory
             {
-                Id = "paint", Label = "Paint", Icon = "paint", Order = 100,
+                Id = "paint", Label = L10n.T("Paint"), Icon = "paint", Order = 100,
                 Camera = Shots.Side,
                 Note = NoteOf,
                 Entries = Entries,
             });
             BodyshopApi.RegisterCategory(new BodyshopCategory
             {
-                Id = "paint2", Label = "Second Paint", Icon = "paint", Order = 110,
+                Id = "paint2", Label = L10n.T("Second Paint"), Icon = "paint", Order = 110,
                 AppliesTo = ChassisApi.HasSecondPaint,
                 Camera = Shots.Side,
                 Note = Note2Of,
@@ -51,9 +52,9 @@ namespace MarcosBodyshop.Builtin
 
         private static string Note2Of(LandVehicle v)
         {
-            if (ChassisApi.GetTuning(v, "paint2") == null) return "Stock";
+            if (ChassisApi.GetTuning(v, "paint2") == null) return L10n.T("Stock");
             foreach (var e in Entries2(v)) if (e.Installed(v)) return e.Label;
-            return "Custom";
+            return L10n.T("Custom");
         }
 
         private static IEnumerable<BodyshopEntry> Entries2(LandVehicle v)
@@ -71,10 +72,11 @@ namespace MarcosBodyshop.Builtin
             string custom = ChassisApi.GetTuning(v, "paint");
             if (custom != null)
             {
-                foreach (var e in Entries(v)) if (e.Group != "Factory" && e.Installed(v)) return e.Label;
-                return "Custom";
+                string factory = L10n.T("Factory");
+                foreach (var e in Entries(v)) if (e.Group != factory && e.Installed(v)) return e.Label;
+                return L10n.T("Custom");
             }
-            return ChassisApi.HasOwnPaintTargets(v) ? "Stock" : FactoryName(v.OwnedColor);
+            return ChassisApi.HasOwnPaintTargets(v) ? L10n.T("Stock") : FactoryName(v.OwnedColor);
         }
 
         private static IEnumerable<BodyshopEntry> Entries(LandVehicle v)
@@ -104,9 +106,10 @@ namespace MarcosBodyshop.Builtin
                 yield return new BodyshopEntry
                 {
                     Id = "factory_" + col.ToString().ToLowerInvariant(),
-                    Group = "Factory",
-                    Label = d.colorName,
-                    Text = "Factory paint.",
+                    Group = L10n.T("Factory"),
+                    // The game names its colours in English only; a name that matches a table key is translated.
+                    Label = L10n.T(d.colorName),
+                    Text = L10n.T("Factory paint."),
                     Price = Prefs.Price("paint_factory", 100),
                     Swatch = "#" + ui.r.ToString("X2") + ui.g.ToString("X2") + ui.b.ToString("X2"),
                     Installed = x => x.OwnedColor == col && ChassisApi.GetTuning(x, "paint") == null,
@@ -119,7 +122,7 @@ namespace MarcosBodyshop.Builtin
 
         private static string FactoryName(EVehicleColor c)
         {
-            try { return Singleton<VehicleColors>.Instance?.GetColorName(c) ?? c.ToString(); }
+            try { return L10n.T(Singleton<VehicleColors>.Instance?.GetColorName(c) ?? c.ToString()); }
             catch (Exception e) { Core.Log.Warning("[Paint] the name of colour " + c + " failed: " + e.Message); return c.ToString(); }
         }
 
@@ -149,9 +152,9 @@ namespace MarcosBodyshop.Builtin
             return new BodyshopEntry
             {
                 Id = group.ToLowerInvariant() + "_" + name.Replace(" ", "").ToLowerInvariant(),
-                Group = group,
-                Label = name,
-                Text = group + " paint.",
+                Group = L10n.T(group),
+                Label = L10n.T(name),
+                Text = L10n.T(group + " paint."),
                 Price = Prefs.Price(priceId, 250),
                 Swatch = "#" + hex,
                 Installed = x => string.Equals(ChassisApi.GetTuning(x, key), value, StringComparison.OrdinalIgnoreCase),
@@ -167,9 +170,9 @@ namespace MarcosBodyshop.Builtin
             return new BodyshopEntry
             {
                 Id = group.ToLowerInvariant() + "_stock",
-                Group = group,
-                Label = "Factory Paint",
-                Text = "Back to the factory colour. Free, no refund.",
+                Group = L10n.T(group),
+                Label = L10n.T("Factory Paint"),
+                Text = L10n.T("Back to the factory colour. Free, no refund."),
                 Price = 0,
                 Installed = x => ChassisApi.GetTuning(x, key) == null,
                 Preview = x => ChassisApi.PreviewTuning(x, key, ""),

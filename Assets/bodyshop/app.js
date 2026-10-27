@@ -14,7 +14,7 @@ var inGame = typeof s1 !== 'undefined';
 var mouseLive = false;   // the pointer moved since the last key press
 var VISIBLE = 9;
 
-var root = null;          // { garage, vehicle, cash, items: [{ id, label, icon, note | locked }] }
+var root = null;          // { garage, vehicle, cash, text: { english: shown }, items: [{ id, label, icon, note | locked }] }
 var stack = [];           // [{ kind: 'root' | 'cat' | 'group', title, rows, pick, top, cat, group }]
 var cash = 0;
 
@@ -26,7 +26,22 @@ function json(name, arg) {
   var s = call(name, arg);
   if (!s) return null;
   try { return JSON.parse(s); }
-  catch (e) { flash('The garage sent bad data.'); return null; }
+  catch (e) { flash(t('The garage sent bad data.')); return null; }
+}
+
+// The page's own words in the player's language: the host sends them with the root model, keyed by the English
+// text. A word the table lacks (or a page without a host) shows in English.
+function t(en) {
+  var table = root && root.text;
+  return (table && table[en]) || en;
+}
+
+// The key hints are written in index.html in English; they take the host's words once the root model is in.
+function translateStatic() {
+  [['k-browse', 'Browse'], ['k-buy', 'Buy'], ['k-back', 'Back']].forEach(function (k) {
+    var e = document.getElementById(k[0]);
+    if (e) e.textContent = t(k[1]);
+  });
 }
 
 // ---- building the levels ----------------------------------------------------------------------------------------
@@ -101,13 +116,21 @@ function render() {
 
   var list = document.getElementById('list');
   list.replaceChildren();
-  if (lv.rows.length === 0) list.appendChild(el('div', 'more', 'Nothing here'));
-  if (lv.top > 0) list.appendChild(el('div', 'more', 'more above'));
+  if (lv.rows.length === 0) list.appendChild(moreRow(t('Nothing here')));
+  if (lv.top > 0) list.appendChild(moreRow(t('more above')));
   var end = Math.min(lv.rows.length, lv.top + VISIBLE);
   for (var i = lv.top; i < end; i++) list.appendChild(rowOf(lv.rows[i], i, i === lv.pick));
-  if (end < lv.rows.length) list.appendChild(el('div', 'more', 'more below'));
+  if (end < lv.rows.length) list.appendChild(moreRow(t('more below')));
 
   detail(lv.rows[lv.pick]);
+}
+
+// A muted line in the list ("more below"). The text sits in a span so the row stays a box with its own height and
+// background: a div holding only text becomes a bare text leaf in the game.
+function moreRow(text) {
+  var d = el('div', 'row more');
+  d.appendChild(el('span', 'label', text));
+  return d;
 }
 
 function rowOf(r, index, isPick) {
@@ -140,18 +163,18 @@ function rightSide(d, r) {
     return;
   }
   if (e.toggle) {
-    d.appendChild(el('span', 'note', e.installed ? 'Fitted' : 'Removed'));
-    d.appendChild(el('span', 'price' + (e.price > cash ? ' short' : ''), e.price === 0 ? 'Free' : money(e.price)));
+    d.appendChild(el('span', 'note', e.installed ? t('Fitted') : t('Removed')));
+    d.appendChild(el('span', 'price' + (e.price > cash ? ' short' : ''), e.price === 0 ? t('Free') : money(e.price)));
     return;
   }
   if (e.installed) {
     var o = el('div', 'owned');
     o.appendChild(img('', 'i-check'));
-    o.appendChild(el('span', '', 'Installed'));
+    o.appendChild(el('span', '', t('Installed')));
     d.appendChild(o);
     return;
   }
-  d.appendChild(el('span', 'price' + (e.price > cash ? ' short' : ''), e.price === 0 ? 'Free' : money(e.price)));
+  d.appendChild(el('span', 'price' + (e.price > cash ? ' short' : ''), e.price === 0 ? t('Free') : money(e.price)));
 }
 
 function detail(r) {
@@ -167,8 +190,8 @@ function detail(r) {
   // An entry's own text explains it in the vehicle mod's words (and language); the generic rule only stands in for it.
   if (e.unlocked !== undefined && (e.blocked || !e.text)) {
     d.appendChild(el('div', 'text', e.unlocked
-      ? 'Unlocked. Removing and refitting is free.'
-      : 'Pay once to unlock. Removing and refitting is free after that.'));
+      ? t('Unlocked. Removing and refitting is free.')
+      : t('Pay once to unlock. Removing and refitting is free after that.')));
   }
   if (!e.now || !e.then) {
     if (!d.firstChild) d.style.display = 'none';
@@ -212,7 +235,7 @@ function enter() {
   if (r.kind === 'cat') {
     if (r.locked) { flash(r.locked); return; }
     var cat = json('shop.list', r.id);
-    if (!cat) { flash('Not available.'); return; }
+    if (!cat) { flash(t('Not available.')); return; }
     stack.push(categoryLevel(cat));
     changed();
     return;
@@ -220,9 +243,9 @@ function enter() {
   if (r.kind === 'group') { stack.push(groupLevel(lv.cat, r.group)); changed(); return; }
 
   var e = r.entry;
-  if (e.installed && !e.toggle) { flash('Already installed.'); return; }
+  if (e.installed && !e.toggle) { flash(t('Already installed.')); return; }
   if (e.blocked) { flash(e.blocked); return; }
-  if (e.price > cash) { flash('Not enough cash.'); return; }
+  if (e.price > cash) { flash(t('Not enough cash.')); return; }
   var why = call('shop.buy', lv.cat.id + '/' + e.id);
   if (why) flash(why);
 }
@@ -253,6 +276,7 @@ function refreshRoot() {
   if (!fresh) return;
   root = fresh;
   cash = root.cash;
+  translateStatic();
   var lv = rootLevel();
   if (stack.length) keepPick(stack[0], lv);
   stack[0] = lv;

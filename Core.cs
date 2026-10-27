@@ -23,6 +23,7 @@ namespace MarcosBodyshop
         {
             Log = LoggerInstance;
             Config.Prefs.Init();
+            Localization.German.Register();   // before any L10n.T use: the built-in categories take their labels at registration
             Net.ShopNet.Apply(HarmonyInstance);
             Builtin.MarcoGarage.Register();
             Builtin.PaintShop.Register();

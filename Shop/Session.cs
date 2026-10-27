@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using Chassis.Api;
+using DooDesch.Localization;
 using Il2CppScheduleOne;
 using Il2CppScheduleOne.DevUtilities;
 using Il2CppScheduleOne.PlayerScripts;
@@ -75,13 +76,13 @@ namespace MarcosBodyshop.Shop
         /// <summary>The local player asks to open a garage's menu.</summary>
         internal static bool Request(string garageId, out string reason)
         {
-            if (_open || _opening) { reason = "The menu is already open."; return false; }
+            if (_open || _opening) { reason = L10n.T("The menu is already open."); return false; }
             var v = Registry.VehicleIn(garageId, out reason, out var bay);
             if (v == null) { Core.Log.Msg("[Menu] garage '" + garageId + "' not opened: " + reason + "."); return false; }
             int id = ShopNet.IdOf(v);
-            if (id < 0) { reason = "The vehicle is not ready yet."; Core.Log.Warning("[Menu] " + v.VehicleName + " has no network id - not opened."); return false; }
+            if (id < 0) { reason = L10n.T("The vehicle is not ready yet."); Core.Log.Warning("[Menu] " + v.VehicleName + " has no network id - not opened."); return false; }
             string me = ShopNet.MyCode();
-            if (me.Length == 0) { reason = "The player is not ready yet."; Core.Log.Warning("[Menu] the local player does not exist yet - not opened."); return false; }
+            if (me.Length == 0) { reason = L10n.T("The player is not ready yet."); Core.Log.Warning("[Menu] the local player does not exist yet - not opened."); return false; }
             _pendingGarage = garageId;
             _pendingVehicle = id;
             ShopNet.ToHost("req.open", garageId, me, id.ToString(CultureInfo.InvariantCulture));
@@ -101,7 +102,7 @@ namespace MarcosBodyshop.Shop
             if (!ok)
             {
                 Core.Log.Msg("[Menu] the host refused garage '" + garage + "': " + reason);
-                Hud.Notify(reason);
+                Hud.Notify(Sync.Heard(reason));
                 return;
             }
             var v = ShopNet.VehicleById(vehicleId);
@@ -110,7 +111,7 @@ namespace MarcosBodyshop.Shop
             {
                 Core.Log.Warning("[Menu] garage '" + garage + "' granted, but the vehicle left the bay (" + (why ?? "another vehicle is there") + ") - not opened.");
                 ShopNet.ToHost("req.close", garage, ShopNet.MyCode());
-                Hud.Notify(why ?? "The vehicle moved.");
+                Hud.Notify(why ?? L10n.T("The vehicle moved."));
                 return;
             }
             MelonCoroutines.Start(OpenRoutine(garage, bay, v, vehicleId));
@@ -297,21 +298,21 @@ namespace MarcosBodyshop.Shop
         /// <summary>Returns "" when the purchase went to the host, or the reason it did not.</summary>
         internal static string Buy(string arg)
         {
-            if (_busy) return "One moment.";
+            if (_busy) return L10n.T("One moment.");
             Split(arg, out string categoryId, out string entryId);
             var c = Registry.Category(categoryId);
-            if (c == null || _vehicle == null) return "Not available.";
+            if (c == null || _vehicle == null) return L10n.T("Not available.");
             string state = Registry.StateOf(c, _vehicle);
-            if (state != null) return state.Length == 0 ? "Not available." : state;
+            if (state != null) return state.Length == 0 ? L10n.T("Not available.") : state;
             var e = Registry.Entry(c, _vehicle, entryId);
-            if (e == null) return "Not available.";
-            if (!e.Toggle && Prices.Installed(e, _vehicle)) return "Already installed.";
+            if (e == null) return L10n.T("Not available.");
+            if (!e.Toggle && Prices.Installed(e, _vehicle)) return L10n.T("Already installed.");
             string blocked = Prices.BlockedOf(e, _vehicle);
             if (blocked != null) return blocked;
             int price = Prices.Of(e, _vehicle);
-            if (Payment.Cash() < price) return "Not enough cash.";
+            if (Payment.Cash() < price) return L10n.T("Not enough cash.");
             int ticket = Payment.Charge(price, c.Id + "/" + e.Id + " on " + _vehicle.VehicleName);
-            if (ticket == 0) return "Not enough cash.";
+            if (ticket == 0) return L10n.T("Not enough cash.");
             _busy = true;
             ShopNet.ToHost("req.buy", _garage, _vehicleId.ToString(CultureInfo.InvariantCulture), c.Id, e.Id,
                            Payment.Ticket(ticket), price.ToString(CultureInfo.InvariantCulture), ShopNet.MyCode());
@@ -324,7 +325,7 @@ namespace MarcosBodyshop.Shop
             _busy = false;
             if (!kept)
             {
-                if (_open) _surface?.Emit("flash", reason.Length > 0 ? reason : "The garage refused.");
+                if (_open) _surface?.Emit("flash", reason.Length > 0 ? Sync.Heard(reason) : L10n.T("The garage refused."));
                 _refreshWanted = true;
                 return;
             }
@@ -335,7 +336,7 @@ namespace MarcosBodyshop.Shop
             bool fitted = e == null || !e.Toggle || Prices.Installed(e, v);
             if (_open && _previewed != null && _previewed == e) _previewed = null;
             Effects.Workshop(v != null ? v.transform.position : Vector3.zero, category, entry);
-            if (_open) _surface?.Emit("flash", label + (e != null && e.Toggle ? (fitted ? " fitted." : " removed.") : " installed.") + (amount > 0 ? " -$" + amount.ToString("N0", CultureInfo.InvariantCulture) : ""));
+            if (_open) _surface?.Emit("flash", L10n.T(e != null && e.Toggle ? (fitted ? "{0} fitted." : "{0} removed.") : "{0} installed.", label) + (amount > 0 ? " -$" + amount.ToString("N0", CultureInfo.InvariantCulture) : ""));
             _refreshWanted = true;
             if (v != null) BodyshopApi.RaisePurchased(v, category, entry);
         }
