@@ -77,6 +77,12 @@ namespace MarcosBodyshop.Shop
         internal static bool Request(string garageId, out string reason)
         {
             if (_open || _opening) { reason = L10n.T("The menu is already open."); return false; }
+            if (!Surfaces.Available)
+            {
+                reason = L10n.T("Sideload 1.35.0 or newer is missing.");
+                Core.Log.Error("[Menu] garage '" + garageId + "' not opened: Sideload with surfaces is not installed or too old (1.35.0 or newer needed).");
+                return false;
+            }
             var v = Registry.VehicleIn(garageId, out reason, out var bay);
             if (v == null) { Core.Log.Msg("[Menu] garage '" + garageId + "' not opened: " + reason + "."); return false; }
             int id = ShopNet.IdOf(v);
@@ -127,6 +133,7 @@ namespace MarcosBodyshop.Shop
             {
                 Core.Log.Error("[Menu] opening garage '" + garage + "' failed: " + e);
                 Close("the menu failed to open");
+                Hud.Notify(L10n.T("The menu could not open. Details are in MelonLoader/Latest.log."));
             }
             _opening = false;
             Effects.FadeIn(0.3f);
@@ -185,7 +192,7 @@ namespace MarcosBodyshop.Shop
             // A short side of 1080 css px: the page is written for a 1080p frame and scales with the screen.
             _surface = Surfaces.Mount(rect, SurfaceId, Bundle, 1080f);
             if (_surface == null) throw new InvalidOperationException("the surface did not mount");
-            _surface.OnCall("shop.start", _ => Safe("start", () => Model.Root(_garage, _vehicle)))
+            _surface.OnCall("shop.start", _ => Start())
                     .OnCall("shop.list", id => Safe("list", () => List(id)))
                     .OnCall("shop.pick", arg => Safe("pick", () => Pick(arg)))
                     .OnCall("shop.leave", _ => Safe("leave", () => Leave()))
@@ -199,6 +206,14 @@ namespace MarcosBodyshop.Shop
             Sounds.MusicOn();
             Core.Log.Msg("[Menu] open: garage '" + garage + "', bay '" + bay.Id + "', " + v.VehicleName + " (net " + vehicleId + "), box " + LocalBox(v).size.ToString("F1") + ".");
             BodyshopApi.RaiseMenu(v, true);
+        }
+
+        // An empty answer leaves the page with its title and no categories, so the player hears why.
+        private static string Start()
+        {
+            string root = Safe("start", () => Model.Root(_garage, _vehicle));
+            if (root.Length == 0) Hud.Notify(L10n.T("The menu could not load. Details are in MelonLoader/Latest.log."));
+            return root;
         }
 
         private static string Safe(string what, Func<string> f)
