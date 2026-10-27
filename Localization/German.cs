@@ -91,6 +91,10 @@ namespace MarcosBodyshop.Localization
                 ["Coloured drift smoke."] = "Farbiger Driftqualm.",
 
                 // Horns
+                ["Two-Tone Horn"] = "Zweiklanghupe",
+                ["Air Horn"] = "Drucklufthupe",
+                ["Short Beep"] = "Kurzer Piep",
+                ["Euro Fanfare"] = "Europa-Fanfare",
                 ["Clown Horn"] = "Clownshupe",
                 ["Rubber Duck"] = "Quietscheente",
                 ["Freight Train"] = "Güterzug",

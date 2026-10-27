@@ -32,7 +32,8 @@ is given anyway.
 | `fit.pcm` | Air Impact Wrench | sevenbsb | https://freesound.org/people/sevenbsb/sounds/349398/ |
 
 The nitro sounds (`nitro-engage.pcm`, `nitro-loop.pcm`, `nitro-release.pcm`) are the mod's own work, synthesised
-from noise and sines by `Assets/sounds/nitro.py` in the same format. They fall under the mod's license.
+from noise and sines by `Assets/sounds/nitro.py` in the same format. So are the plain horns (`twotone.pcm`,
+`airhorn.pcm`, `beep.pcm`, `eurofanfare.pcm`), made by `Assets/sounds/horns.py`. They fall under the mod's license.
 
 The respray sound and the workshop music are the game's own clips, played from the running game; the mod ships
 none of them.
