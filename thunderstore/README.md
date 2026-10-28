@@ -6,7 +6,7 @@
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![Status](https://img.shields.io/badge/status-beta-yellow)
-[![Polyfill](https://polyfill.doomods.com/badge/marcosbodyshop.svg)](https://polyfill.doomods.com/mod/marcosbodyshop)
+[![Polyfill](https://polyfill.doomods.com/badge/marco-s-bodyshop.svg)](https://polyfill.doomods.com/mod/marco-s-bodyshop)
 
 [![MLVScan MarcosBodyshop.dll](https://mlvscan.com/attestations/att_sU_bLU0Wpl-wrGlPwOon6ew1/badge.svg)](https://mlvscan.com/attestations/att_sU_bLU0Wpl-wrGlPwOon6ew1)
 
