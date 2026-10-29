@@ -4,6 +4,11 @@ All notable changes to Marco's Bodyshop are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to Semantic Versioning.
 
+## [1.1.2] - 2026-10-29
+
+### Fixed
+- Marco's menu no longer opens with an empty list when Chassis is older than 1.8.0. Marco now says which version is needed.
+
 ## [1.1.1] - 2026-10-27
 
 ### Fixed
