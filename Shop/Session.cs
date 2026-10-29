@@ -83,6 +83,13 @@ namespace MarcosBodyshop.Shop
                 Core.Log.Error("[Menu] garage '" + garageId + "' not opened: Sideload with surfaces is not installed or too old (1.35.0 or newer needed).");
                 return false;
             }
+            string chassis = Requirements.ChassisProblem();
+            if (chassis != null)
+            {
+                reason = chassis;
+                Core.Log.Error("[Menu] garage '" + garageId + "' not opened: Chassis is too old (" + Requirements.MinChassis + " or newer needed).");
+                return false;
+            }
             var v = Registry.VehicleIn(garageId, out reason, out var bay);
             if (v == null) { Core.Log.Msg("[Menu] garage '" + garageId + "' not opened: " + reason + "."); return false; }
             int id = ShopNet.IdOf(v);
