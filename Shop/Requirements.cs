@@ -35,6 +35,12 @@ namespace MarcosBodyshop.Shop
                 Core.Log.Warning("[Menu] the Chassis version '" + installed + "' is unreadable - not checked.");
                 return _problem = null;
             }
+            // A build without a release tag reports 0.0.0-dev; it is built from current source, not an old release.
+            if (have == new Version(0, 0, 0))
+            {
+                Core.Log.Msg("[Menu] Chassis " + installed + " is a development build - its version is not checked.");
+                return _problem = null;
+            }
             if (have < Version.Parse(MinChassis))
             {
                 Core.Log.Error("[Menu] Chassis " + installed + " is too old: the menu needs " + MinChassis + " or newer.");
