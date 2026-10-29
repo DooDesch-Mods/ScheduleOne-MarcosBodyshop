@@ -139,6 +139,7 @@ namespace MarcosBodyshop.Localization
                 ["The vehicle is not ready yet."] = "Das Fahrzeug ist noch nicht bereit.",
                 ["The player is not ready yet."] = "Der Spieler ist noch nicht bereit.",
                 ["Sideload 1.35.0 or newer is missing."] = "Sideload 1.35.0 oder neuer fehlt.",
+                ["Chassis 1.8.0 or newer is missing."] = "Chassis 1.8.0 oder neuer fehlt.",
                 ["The menu could not open. Details are in MelonLoader/Latest.log."] = "Das Menü konnte nicht öffnen. Details stehen in MelonLoader/Latest.log.",
                 ["The menu could not load. Details are in MelonLoader/Latest.log."] = "Das Menü konnte nicht laden. Details stehen in MelonLoader/Latest.log.",
                 ["The vehicle moved."] = "Das Fahrzeug wurde bewegt.",
