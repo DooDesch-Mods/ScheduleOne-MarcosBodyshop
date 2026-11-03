@@ -92,3 +92,7 @@ Menu icons from [Lucide](https://lucide.dev), licensed [ISC](https://lucide.dev/
 DooDesch API License - build your own mods on `BodyshopApi`, do not copy the code. Forks, changes and pull
 requests are welcome. Publishing or reuploading the mod or a changed copy needs written permission. See
 [LICENSE.md](LICENSE.md).
+
+This mod is written with help from generative AI tools (Anthropic Claude, OpenAI Codex).
+
+If you have fun with it, a like on the [Thunderstore page](https://thunderstore.io/c/schedule-i/p/DooDesch/MarcosBodyshop/) really helps other people find it (thumbs up next to Download, you need to be logged in) - ty either way, and lemme know if anything breaks or you've got ideas
