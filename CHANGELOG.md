@@ -4,6 +4,12 @@ All notable changes to Marco's Bodyshop are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to Semantic Versioning.
 
+## [1.1.4] - 2026-11-03
+
+### Fixed
+- Marco names what is wrong with your Sideload install and the file to move (subfolder of Mods, copy in UserLibs or
+  Plugins, too old) instead of always "1.35.0 or newer is missing".
+
 ## [1.1.3] - 2026-11-02
 
 ### Changed
