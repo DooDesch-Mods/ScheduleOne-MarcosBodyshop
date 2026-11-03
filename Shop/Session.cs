@@ -77,10 +77,11 @@ namespace MarcosBodyshop.Shop
         internal static bool Request(string garageId, out string reason)
         {
             if (_open || _opening) { reason = L10n.T("The menu is already open."); return false; }
-            if (!Surfaces.Available)
+            string sideload = Requirements.SideloadProblem();
+            if (sideload != null)
             {
-                reason = L10n.T("Sideload 1.35.0 or newer is missing.");
-                Core.Log.Error("[Menu] garage '" + garageId + "' not opened: Sideload with surfaces is not installed or too old (1.35.0 or newer needed).");
+                reason = sideload;
+                Core.Log.Error("[Menu] garage '" + garageId + "' not opened: " + sideload);
                 return false;
             }
             string chassis = Requirements.ChassisProblem();
