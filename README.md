@@ -8,7 +8,7 @@
 ![Status](https://img.shields.io/badge/status-beta-yellow)
 [![Polyfill](https://polyfill.doomods.com/badge/marco-s-bodyshop.svg)](https://polyfill.doomods.com/mod/marco-s-bodyshop)
 
-[![MLVScan MarcosBodyshop.dll](https://mlvscan.com/attestations/att_75HOronOuPZfNWUQQ5m_igUz/badge.svg)](https://mlvscan.com/attestations/att_75HOronOuPZfNWUQQ5m_igUz)
+[![MLVScan MarcosBodyshop.dll](https://mlvscan.com/attestations/att_SEn3DHk83N5zQ7-PcAe0HqKb/badge.svg)](https://mlvscan.com/attestations/att_SEn3DHk83N5zQ7-PcAe0HqKb)
 
 ![Marco's Bodyshop](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/main/docs/img/header.jpg)
 
