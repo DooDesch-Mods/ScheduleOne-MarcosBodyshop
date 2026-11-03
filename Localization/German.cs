@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DooDesch.Localization;
+using DooDesch.Requirements;
 
 namespace MarcosBodyshop.Localization
 {
@@ -12,7 +13,7 @@ namespace MarcosBodyshop.Localization
     {
         internal static void Register()
         {
-            L10n.Register("de", new Dictionary<string, string>
+            var de = new Dictionary<string, string>
             {
                 // Categories
                 ["Paint"] = "Lack",
@@ -138,12 +139,6 @@ namespace MarcosBodyshop.Localization
                 ["The menu is already open."] = "Das Menü ist schon offen.",
                 ["The vehicle is not ready yet."] = "Das Fahrzeug ist noch nicht bereit.",
                 ["The player is not ready yet."] = "Der Spieler ist noch nicht bereit.",
-                ["Sideload is not installed."] = "Sideload ist nicht installiert.",
-                ["Sideload is not loaded. Move {0} straight into the Mods folder."] = "Sideload ist nicht geladen. Leg {0} direkt in den Mods-Ordner.",
-                ["Sideload is loaded from {0}, not from the Mods folder."] = "Sideload wird aus {0} geladen, nicht aus dem Mods-Ordner.",
-                ["Sideload {0} is too old. The menu needs 1.35.0 or newer."] = "Sideload {0} ist zu alt. Das Menü braucht 1.35.0 oder neuer.",
-                ["Sideload {0} did not start. Details are in MelonLoader/Latest.log."] = "Sideload {0} ist nicht gestartet. Details stehen in MelonLoader/Latest.log.",
-                ["Chassis 1.8.0 or newer is missing."] = "Chassis 1.8.0 oder neuer fehlt.",
                 ["The menu could not open. Details are in MelonLoader/Latest.log."] = "Das Menü konnte nicht öffnen. Details stehen in MelonLoader/Latest.log.",
                 ["The menu could not load. Details are in MelonLoader/Latest.log."] = "Das Menü konnte nicht laden. Details stehen in MelonLoader/Latest.log.",
                 ["The vehicle moved."] = "Das Fahrzeug wurde bewegt.",
@@ -187,7 +182,10 @@ namespace MarcosBodyshop.Localization
                 ["Pay once to unlock. Removing and refitting is free after that."] =
                     "Einmal zahlen zum Freischalten. Danach sind Aus- und Wiedereinbau gratis.",
                 ["The garage sent bad data."] = "Die Werkstatt hat fehlerhafte Daten geschickt.",
-            });
+            };
+            // The lines of the shared dependency check (Sideload, Chassis), so the translation template lists them.
+            Require.AddTranslations("de", de);
+            L10n.Register("de", de);
         }
     }
 }

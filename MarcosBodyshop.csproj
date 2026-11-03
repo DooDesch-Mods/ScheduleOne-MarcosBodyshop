@@ -54,6 +54,9 @@
        the Workspace Remove above and after WorkspaceLibPath is set; resolved via $(WorkspaceLibPath)/.. so the same
        line works locally (Workspace = sibling folder) and in CI (Workspace = subfolder checkout). -->
   <Import Project="$(WorkspaceLibPath)/../build/L10n.props" Condition="Exists('$(WorkspaceLibPath)/../build/L10n.props')" />
+  <!-- Shared dependency check (DooDesch.Requirements.Require): names the Sideload install mistake and checks the
+       Chassis version. Linked source like L10n, same placement rules. -->
+  <Import Project="$(WorkspaceLibPath)/../build/Requirements.props" Condition="Exists('$(WorkspaceLibPath)/../build/Requirements.props')" />
 
   <ItemGroup>
     <Reference Include="MelonLoader"><HintPath>$(MelonLoaderPath)/MelonLoader.dll</HintPath><Private>false</Private></Reference>
