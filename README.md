@@ -2,6 +2,8 @@
 
 > 🛟 **Need help or found a bug?** Get support at [support.doodesch.de/marcosbodyshop](https://support.doodesch.de/marcosbodyshop).
 
+**Download:** [Nexus Mods](https://www.nexusmods.com/schedule1/mods/2987) · [Thunderstore](https://thunderstore.io/c/schedule-i/p/DooDesch/MarcosBodyshop/) · [GitHub Releases](https://github.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/releases)
+
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
@@ -77,12 +79,25 @@ The tuning is saved by Chassis and stays on the cars without this mod.
 | ![Engine stages with stat bars](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/main/docs/img/engine.jpg) | ![The garage menu](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/main/docs/img/menu.jpg) |
 | ![The RV on Marco's lot](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/main/docs/img/rv.jpg) | ![The RV's interior parts](https://raw.githubusercontent.com/DooDesch-Mods/ScheduleOne-MarcosBodyshop/main/docs/img/interior.jpg) |
 
+## Installation
+
+### Recommended: Nexus Mods
+
+1. Install **MelonLoader 0.7.3** or newer for Schedule I ([melonwiki.xyz](https://melonwiki.xyz/)).
+2. Download Marco's Bodyshop from [Nexus Mods](https://www.nexusmods.com/schedule1/mods/2987) and install it with Vortex,
+   or put **`MarcosBodyshop.dll`** into your Schedule I `Mods/` folder.
+3. Get the mods under Requirements from their Nexus pages the same way.
+
+### Thunderstore mod manager
+
+Install from the [Thunderstore page](https://thunderstore.io/c/schedule-i/p/DooDesch/MarcosBodyshop/) with r2modman or Gale. The dependencies are pulled in automatically.
+
 ## Requirements
 
 - [MelonLoader](https://melonwiki.xyz/) 0.7.3 or newer
 - [S1API](https://thunderstore.io/c/schedule-i/p/ifBars/S1API_Forked/) 3.2.1 or newer
-- [Chassis](https://thunderstore.io/c/schedule-i/p/DooDesch/Chassis/) 1.8.0 or newer
-- [Sideload](https://thunderstore.io/c/schedule-i/p/DooDesch/Sideload/) 1.35.0 or newer
+- [Chassis](https://www.nexusmods.com/schedule1/mods/2918) 1.8.0 or newer
+- [Sideload](https://www.nexusmods.com/schedule1/mods/2360) 1.35.0 or newer
 
 ## Credits
 
