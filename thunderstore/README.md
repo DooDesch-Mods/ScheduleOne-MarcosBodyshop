@@ -2,13 +2,11 @@
 
 > 🛟 **Need help or found a bug?** Get support at [support.doodesch.de/marcosbodyshop](https://support.doodesch.de/marcosbodyshop).
 
-[![Discord](https://mods.doodesch.de/img/badge.svg)](https://mods.doodesch.de)
-
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![Status](https://img.shields.io/badge/status-beta-yellow)
-[![Polyfill](https://polyfill.doomods.com/badge/marco-s-bodyshop.svg)](https://polyfill.doomods.com/mod/marco-s-bodyshop)
+[![Discord](https://mods.doodesch.de/img/badge.svg)](https://mods.doodesch.de) [![Polyfill](https://polyfill.doomods.com/badge/marco-s-bodyshop.svg)](https://polyfill.doomods.com/mod/marco-s-bodyshop)
 
 [![MLVScan MarcosBodyshop.dll](https://mlvscan.com/attestations/att_SEn3DHk83N5zQ7-PcAe0HqKb/badge.svg)](https://mlvscan.com/attestations/att_SEn3DHk83N5zQ7-PcAe0HqKb)
 
