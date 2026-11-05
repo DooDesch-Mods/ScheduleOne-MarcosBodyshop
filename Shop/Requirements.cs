@@ -6,27 +6,19 @@ using Sideload.Api;
 namespace MarcosBodyshop.Shop
 {
     /// <summary>
-    /// The mods the menu needs and the versions it needs them in. The checks themselves are the shared
-    /// <see cref="Require"/> (Workspace/requirements): they tell the install mistakes apart, name the file and log
-    /// the details. MelonLoader only checks that Chassis is there; an older one loads, and the menu then opens with
-    /// no categories because the calls it makes into Chassis do not exist yet.
+    /// The mods the menu needs. The minimums are the versions in thunderstore/manifest.json, and the checks are the
+    /// shared <see cref="Require"/> (Workspace/requirements): they tell the install mistakes apart, name the file and
+    /// log the details. MelonLoader only checks that Chassis is there; an older one loads, and the menu then opens
+    /// with no categories because the calls it makes into Chassis do not exist yet.
     /// </summary>
     internal static class Requirements
     {
-        // Same as the Chassis dependency in thunderstore/manifest.json.
-        internal const string MinChassis = "1.8.0";
-        // Same as the Sideload dependency in thunderstore/manifest.json.
-        internal const string MinSideload = "1.35.0";
-
-        /// <summary>A player line when the installed Chassis is too old, otherwise null.</summary>
-        internal static string ChassisProblem() => Require.Version("Chassis", MinChassis);
-
         /// <summary>
-        /// A player line when the menu cannot draw, otherwise null. Ready means the Sideload shim bound to the
-        /// running Sideload; the shim only answers "bound or not", so the shared check finds the cause.
+        /// A player line when the menu cannot open, otherwise null. Sideload counts as ready once the Sideload shim
+        /// bound to the running Sideload; the shim only answers "bound or not", so the shared check finds the cause.
         /// </summary>
-        internal static string SideloadProblem() =>
-            Require.Installed("Sideload", MinSideload, () => Surfaces.Available, LogBridgeFailure);
+        internal static string Problem() =>
+            Require.Check(new Need("Sideload") { Ready = () => Surfaces.Available, Explain = LogBridgeFailure });
 
         /// <summary>The shim swallows the reason its handshake failed; read the bridge once more to log it.</summary>
         private static void LogBridgeFailure(Assembly sideload)
