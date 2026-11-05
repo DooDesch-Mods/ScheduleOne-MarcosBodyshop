@@ -77,18 +77,11 @@ namespace MarcosBodyshop.Shop
         internal static bool Request(string garageId, out string reason)
         {
             if (_open || _opening) { reason = L10n.T("The menu is already open."); return false; }
-            string sideload = Requirements.SideloadProblem();
-            if (sideload != null)
+            string missing = Requirements.Problem();
+            if (missing != null)
             {
-                reason = sideload;
-                Core.Log.Error("[Menu] garage '" + garageId + "' not opened: " + sideload);
-                return false;
-            }
-            string chassis = Requirements.ChassisProblem();
-            if (chassis != null)
-            {
-                reason = chassis;
-                Core.Log.Error("[Menu] garage '" + garageId + "' not opened: Chassis is too old (" + Requirements.MinChassis + " or newer needed).");
+                reason = missing;
+                Core.Log.Error("[Menu] garage '" + garageId + "' not opened: " + missing);
                 return false;
             }
             var v = Registry.VehicleIn(garageId, out reason, out var bay);
