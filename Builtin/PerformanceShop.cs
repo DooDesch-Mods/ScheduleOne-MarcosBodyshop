@@ -34,6 +34,8 @@ namespace MarcosBodyshop.Builtin
             Stage("bodyshop_steering_2", "steering", "Race Steering Rack", 2200, new TuningStats { Steer = 1.3f });
             Stage("bodyshop_weight_1", "weight", "Lightweight Panels", 1250, new TuningStats { Mass = 0.9f });
             Stage("bodyshop_weight_2", "weight", "Carbon Body", 3125, new TuningStats { Mass = 0.8f });
+            // The opposite of Chassis' drift tyres, in the same slot: a car has one or the other.
+            Stage("bodyshop_tyres_grip", "tyres", "Grip Tyres", 950, new TuningStats { Grip = 1.3f });
             Nitro.Register();
 
             foreach (var s in Slots)
