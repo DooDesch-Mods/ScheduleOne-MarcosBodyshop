@@ -371,18 +371,19 @@ namespace MarcosBodyshop.Shop
         {
             var pc = PlayerSingleton<PlayerCamera>.Instance;
             if (pc == null || _vehicle == null) return;
-            CameraShot? shot = null;
+            CameraShot? shot = null, bayShot = null;
             bool fixedShot = false;
             try
             {
                 if (entry?.Camera != null) shot = entry.Camera(_vehicle);
                 if (shot == null && _category?.Camera != null) shot = _category.Camera(_vehicle);
-                if (shot == null && _bay?.Camera != null) { shot = _bay.Camera(_vehicle); fixedShot = shot != null; }
+                if (_bay?.Camera != null) bayShot = _bay.Camera(_vehicle);
+                if (shot == null && bayShot != null) { shot = bayShot; fixedShot = true; }
             }
             catch (Exception e) { Core.Log.Error("[Menu] a camera function failed - the camera stays: " + e.Message); return; }
             // A bay's own camera is placed for that bay; shots around the vehicle may land in a wall.
             var s = shot ?? DefaultShot(_vehicle);
-            if (!fixedShot) s = FreeView(_vehicle, s);
+            if (!fixedShot) s = FreeView(_vehicle, s, bayShot);
             Cutaway.Aim(_vehicle, s.Eye);
             Vector3 look = s.Target - s.Eye;
             if (look.sqrMagnitude < 0.0001f) look = Vector3.forward;
@@ -407,9 +408,12 @@ namespace MarcosBodyshop.Shop
 
         /// <summary>
         /// A shot whose eye stands behind a wall or inside a building (a vehicle parked with that side to it) goes to the
-        /// vehicle's other side, mirrored, when that side is free. Whatever still stands in the view fades (<see cref="Cutaway"/>).
+        /// vehicle's other side, mirrored, when that side is free. Blocked on both sides (a long van in the narrow hall), the
+        /// eye moves in along its line to just before the nearer wall and the view widens to keep the vehicle in frame; with
+        /// no room left between the vehicle and the wall, the bay's own camera (<paramref name="fallback"/>) takes over.
+        /// Whatever still stands in the view fades (<see cref="Cutaway"/>).
         /// </summary>
-        internal static CameraShot FreeView(LandVehicle v, CameraShot s)
+        internal static CameraShot FreeView(LandVehicle v, CameraShot s, CameraShot? fallback = null)
         {
             try
             {
@@ -417,15 +421,61 @@ namespace MarcosBodyshop.Shop
                 var t = v.transform;
                 Vector3 e = t.InverseTransformPoint(s.Eye), g = t.InverseTransformPoint(s.Target);
                 var mirrored = new CameraShot(t.TransformPoint(new Vector3(-e.x, e.y, e.z)), t.TransformPoint(new Vector3(-g.x, g.y, g.z)), s.Fov);
-                if (!Blocked(v, mirrored.Target, mirrored.Eye, out _, out _))
+                if (!Blocked(v, mirrored.Target, mirrored.Eye, out float freeMirrored, out string byMirrored))
                 {
-                    Core.Log.Msg("[Menu] camera view blocked " + free.ToString("F1", CultureInfo.InvariantCulture) + " m out by '" + by + "' - shown from the other side.");
+                    Core.Log.Msg("[Menu] camera view blocked " + F1(free) + " m out by '" + by + "' - shown from the other side.");
                     return mirrored;
                 }
-                Core.Log.Msg("[Menu] camera view blocked on both sides - the shot stays, the blockers fade.");
+                bool other = freeMirrored > free;
+                var near = other ? mirrored : s;
+                float room = (other ? freeMirrored : free) - WallGap;
+                float len = (near.Eye - near.Target).magnitude;
+                float need = BoxExit(v, near.Target, near.Eye) + MinClearance;
+                if (room >= need && len > 0.01f)
+                {
+                    float fov = s.Fov > 1f ? s.Fov : 60f;
+                    float wide = Mathf.Min(MaxFov, 2f * Mathf.Atan(Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad) * len / room) * Mathf.Rad2Deg);
+                    var pulled = new CameraShot(near.Target + (near.Eye - near.Target) * (room / len), near.Target, wide);
+                    Core.Log.Msg("[Menu] camera view blocked on both sides ('" + by + "' " + F1(free) + " m, '" + byMirrored + "' " + F1(freeMirrored) + " m) - moved in to "
+                        + F1(room) + " m of " + F1(len) + " m, view " + wide.ToString("F0", CultureInfo.InvariantCulture) + " deg.");
+                    return pulled;
+                }
+                if (fallback != null)
+                {
+                    Core.Log.Msg("[Menu] camera view blocked on both sides and no room before the walls (" + F1(room) + " m, need " + F1(need) + " m) - the bay's camera takes over.");
+                    return fallback.Value;
+                }
+                Core.Log.Msg("[Menu] camera view blocked on both sides and no room before the walls - the shot stays, the blockers fade.");
                 return s;
             }
             catch (Exception e) { Core.Log.Warning("[Menu] checking the camera's view failed - the shot stays as given: " + e.Message); return s; }
+        }
+
+        // Distance kept from a wall the eye moves in to, the least gap between the vehicle's box and the eye, and the
+        // widest view a moved-in shot may get.
+        private const float WallGap = 0.35f, MinClearance = 0.6f, MaxFov = 95f;
+
+        private static string F1(float f) => f.ToString("F1", CultureInfo.InvariantCulture);
+
+        // How far from <paramref name="from"/> (inside the vehicle) the line towards <paramref name="to"/> leaves the
+        // vehicle's box.
+        private static float BoxExit(LandVehicle v, Vector3 from, Vector3 to)
+        {
+            var t = v.transform;
+            var box = LocalBox(v);
+            Vector3 o = t.InverseTransformPoint(from), d = t.InverseTransformPoint(to) - o;
+            float len = d.magnitude;
+            if (len < 0.0001f) return 0f;
+            d /= len;
+            float exit = float.PositiveInfinity;
+            for (int i = 0; i < 3; i++)
+            {
+                if (Mathf.Abs(d[i]) < 1e-5f) continue;
+                float face = d[i] > 0f ? box.max[i] : box.min[i];
+                exit = Mathf.Min(exit, (face - o[i]) / d[i]);
+            }
+            // Measured in local units; the vehicle's scale turns them into metres.
+            return float.IsInfinity(exit) ? 0f : Mathf.Max(0f, exit) * t.lossyScale.x;
         }
 
         // Free distance from the target towards the eye; the vehicle itself, the local player and whatever is inside
