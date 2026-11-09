@@ -114,6 +114,7 @@ namespace MarcosBodyshop.Localization
                 ["Less weight, quicker off the line."] = "Weniger Gewicht, schneller vom Fleck.",
                 ["Quick Steering Rack"] = "Direkte Lenkung",
                 ["Race Steering Rack"] = "Rennlenkung",
+                ["Grip Tyres"] = "Grip-Reifen",
                 ["Lightweight Panels"] = "Leichtbau-Verkleidung",
                 ["Carbon Body"] = "Carbon-Karosserie",
                 ["Nitrous Kit"] = "Lachgas-Kit",
