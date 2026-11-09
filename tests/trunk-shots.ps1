@@ -61,7 +61,7 @@ function Car([string]$code, [int[]]$tiers) {
         Start-Sleep -Milliseconds 800
         Shoot "$code-tier$t"
     }
-    S1 run 'bodyshop trunk move 40 -30 40' | Out-Null
+    S1 run 'bodyshop trunk move 40 300 40' | Out-Null
     Start-Sleep -Milliseconds 1500
 }
 

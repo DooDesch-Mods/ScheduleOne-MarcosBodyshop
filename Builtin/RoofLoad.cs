@@ -7,15 +7,21 @@ using UnityEngine;
 namespace MarcosBodyshop.Builtin
 {
     /// <summary>
-    /// The roof load of the trunk tiers, made from the game's own props: bin bags (tier 1), boxes and bags (tier 2), and
-    /// a mattress with boxes and bags on top (tier 3). The pieces sit on the highest flat stretch of the roof, found by
+    /// The roof load of the trunk tiers, made from the game's own props: a layer of bin bags (tier 1), a block of boxes
+    /// (tier 2), and a mattress with an armchair, a box and a bag on top (tier 3), each held by straps. The pieces sit on the highest flat stretch of the roof, found by
     /// casting down onto the car's own colliders, so a pickup carries them on its cab.
     /// </summary>
     internal static class RoofLoad
     {
         private static readonly string[] BagMeshes = { "Garbage bag", "GarbageBag", "Trash bag", "Bag_LOD0" };
         private static readonly string[] BoxMeshes = { "Box", "Box_0", "Box_1", "Cardboard Box", "CardboardBox" };
-        private static readonly string[] MattressMeshes = { "Mattress", "Hippie_Bed_LOD0" };
+        // "name@part" takes a mesh only from an object whose path holds that part: two meshes are called "Bed", and the
+        // mattress is the one inside the RV.
+        private static readonly string[] MattressMeshes = { "Bed@Interior", "Mattress", "Hippie_Bed_LOD0" };
+        private static readonly string[] ArmchairMeshes = { "Armchair" };
+        private static readonly string[] StrapSource = { "Tire" };
+        private static readonly Color StrapColour = new Color(0.1f, 0.3f, 0.85f);
+        private static Material _strap;
 
         private sealed class Prop { internal Mesh Mesh; internal Material[] Materials; internal string Name; internal Quaternion Rot = Quaternion.identity; internal Vector3 Scale = Vector3.one; }
         private static readonly Dictionary<string, Prop> _props = new Dictionary<string, Prop>();
@@ -27,33 +33,59 @@ namespace MarcosBodyshop.Builtin
             try
             {
                 Roof(v, out Vector3 top, out float length, out float width);
-                // Fixed offsets per piece, in parts of the roof's length and width; heights stack on what lies below.
+                // Everything lines up with the car in a grid of two across, held down by straps across the load.
+                float w = width * 0.9f, half = w * 0.5f;
                 switch (tier)
                 {
                     case 1:
-                        Bag(root, top + new Vector3(-0.2f * width, 0f, 0.25f * length), width * 0.42f, 15f);
-                        Bag(root, top + new Vector3(0.22f * width, 0f, 0.05f * length), width * 0.45f, -30f);
-                        Bag(root, top + new Vector3(-0.05f * width, 0f, -0.25f * length), width * 0.4f, 70f);
+                    {
+                        // Bin bags lying flat, pressed against each other.
+                        int n = Mathf.Clamp(Mathf.RoundToInt(length / 0.55f), 2, 4);
+                        float cell = length / n, h = Mathf.Min(0.34f, half * 0.7f);
+                        var bag = Find("bag", BagMeshes);
+                        for (int i = 0; i < n; i++)
+                            for (int s = 0; s < 2; s++)
+                                Fit(root, bag, top + new Vector3((s - 0.5f) * half, 0f, (i + 0.5f - n * 0.5f) * cell),
+                                    new Vector3(half * 1.04f, h, cell * 1.04f), Jitter(i * 2 + s, 6f));
+                        // The bags are round, so the strap runs over their tops and slants down to the roof's edges.
+                        Straps(root, top, length, half * 0.55f, half + 0.02f, h * 0.9f);
                         break;
+                    }
                     case 2:
                     {
-                        float h1 = Box(root, top + new Vector3(-0.18f * width, 0f, 0.15f * length), width * 0.5f, 5f);
-                        Box(root, top + new Vector3(0.2f * width, 0f, -0.15f * length), width * 0.45f, -12f);
-                        Box(root, top + new Vector3(-0.15f * width, h1, 0.15f * length), width * 0.38f, 25f);
-                        Bag(root, top + new Vector3(0.2f * width, 0f, 0.3f * length), width * 0.38f, 40f);
-                        Bag(root, top + new Vector3(-0.2f * width, 0f, -0.32f * length), width * 0.38f, -20f);
+                        // A block of boxes, two layers high.
+                        int n = Mathf.Clamp(Mathf.RoundToInt(length / half), 2, 4);
+                        float cell = length / n, h = Mathf.Min(0.4f, half * 0.85f);
+                        var box = Find("box", BoxMeshes);
+                        for (int layer = 0; layer < 2; layer++)
+                            for (int i = 0; i < n; i++)
+                                for (int s = 0; s < 2; s++)
+                                    Fit(root, box, top + new Vector3((s - 0.5f) * half, layer * h, (i + 0.5f - n * 0.5f) * cell),
+                                        new Vector3(half * 0.98f, h, cell * 0.98f), Jitter(layer * 8 + i * 2 + s, 2f));
+                        Straps(root, top, length, half, half, 2f * h);
                         break;
                     }
                     default:
                     {
-                        // The mattress is longer than the flat roof and hangs over its ends a little.
-                        float m = Mattress(root, top, length * 1.3f, width * 1.15f);
+                        // A mattress over the whole roof with an armchair on its back half, facing backwards, and a box
+                        // and a bin bag at the front. Straps hold the front pieces and both ends of the mattress.
+                        float ml = length * 1.2f, mw = w * 1.1f, mh = Mathf.Clamp(mw * 0.2f, 0.22f, 0.28f);
+                        float m = Fit(root, Find("mattress", MattressMeshes), top, new Vector3(mw, mh, ml), 0f, lengthAlongZ: true) != null ? mh : 0f;
                         Vector3 on = top + new Vector3(0f, m, 0f);
-                        float h1 = Box(root, on + new Vector3(-0.15f * width, 0f, 0.18f * length), width * 0.45f, -8f);
-                        Box(root, on + new Vector3(0.18f * width, 0f, -0.2f * length), width * 0.42f, 18f);
-                        Box(root, on + new Vector3(-0.12f * width, h1, 0.18f * length), width * 0.34f, 30f);
-                        Bag(root, on + new Vector3(0.22f * width, 0f, 0.25f * length), width * 0.36f, -35f);
-                        Bag(root, on + new Vector3(-0.2f * width, 0f, -0.3f * length), width * 0.36f, 60f);
+                        var chair = Find("armchair", ArmchairMeshes);
+                        if (chair != null)
+                        {
+                            var cs = Size(chair);
+                            float k = Mathf.Min(w * 0.65f / Mathf.Max(0.01f, cs.x), length * 0.45f / Mathf.Max(0.01f, cs.z));
+                            Fit(root, chair, on + new Vector3(0f, 0f, -0.22f * length), cs * k, 180f);
+                        }
+                        float front = 0.24f * length, side = Mathf.Min(half * 0.8f, length * 0.34f);
+                        Fit(root, Find("box", BoxMeshes), on + new Vector3(-0.5f * half, 0f, front), new Vector3(side, side, side), Jitter(1, 3f));
+                        Fit(root, Find("bag", BagMeshes), on + new Vector3(0.5f * half, 0f, front), new Vector3(side, side * 0.8f, side), Jitter(2, 6f));
+                        float reach = 0.5f * half + 0.5f * side;
+                        Strap(root, on + new Vector3(0f, 0f, front), reach, reach, side, 0f);
+                        Strap(root, top + new Vector3(0f, 0f, 0.55f * length), mw * 0.5f, mw * 0.5f, m, 0f);
+                        Strap(root, top + new Vector3(0f, 0f, -0.55f * length), mw * 0.5f, mw * 0.5f, m, 0f);
                         break;
                     }
                 }
@@ -121,50 +153,97 @@ namespace MarcosBodyshop.Builtin
 
         // ---- pieces --------------------------------------------------------------------------------------------------
 
-        private static float Bag(GameObject root, Vector3 at, float size, float yaw) => Place(root, "bag", BagMeshes, at, size, yaw, flat: false);
-        private static float Box(GameObject root, Vector3 at, float size, float yaw) => Place(root, "box", BoxMeshes, at, size, yaw, flat: false);
-
-        /// <summary>The mattress lies flat over the whole roof; returns its thickness.</summary>
-        private static float Mattress(GameObject root, Vector3 at, float length, float width)
+        /// <summary>
+        /// Puts a prop with the middle of its bottom on <paramref name="at"/>, stretched to exactly <paramref name="size"/>
+        /// (before the turn by <paramref name="yaw"/>). With <paramref name="lengthAlongZ"/> a prop that is longer across
+        /// than along is turned a quarter first, so its long side runs along the car.
+        /// </summary>
+        private static GameObject Fit(GameObject root, Prop p, Vector3 at, Vector3 size, float yaw, bool lengthAlongZ = false)
         {
-            var p = Find("mattress", MattressMeshes);
-            if (p == null) return 0f;
-            var go = Piece(root, p, out var bounds);
-            // Lay it flat: its thinnest axis up, its longest along the car.
-            Vector3 s = bounds.size;
-            Quaternion rot = Quaternion.identity;
-            if (s.z <= s.x && s.z <= s.y) rot = Quaternion.Euler(-90f, 0f, 0f);
-            else if (s.x <= s.y && s.x <= s.z) rot = Quaternion.Euler(0f, 0f, 90f);
-            Vector3 laid = Abs(rot * s);
-            if (laid.x > laid.z) { rot = Quaternion.Euler(0f, 90f, 0f) * rot; laid = Abs(rot * s); }
-            // Stretched to the given footprint; the thickness follows the mean stretch, kept between 15 and 25 cm.
-            float sx = width / Mathf.Max(0.01f, laid.x), sz = length / Mathf.Max(0.01f, laid.z);
-            float thick = Mathf.Clamp(laid.y * (sx + sz) * 0.5f, 0.15f, 0.25f);
-            Vector3 laidScale = new Vector3(sx, thick / Mathf.Max(0.01f, laid.y), sz);
-            // The rotation only swaps axes, so the stretch along the laid axes maps back onto the mesh's own axes.
-            Vector3 local = Abs(Quaternion.Inverse(rot) * laidScale);
-            go.transform.localRotation = rot;
-            go.transform.localScale = local;
-            Vector3 centre = rot * Vector3.Scale(bounds.center, local);
-            float bottom = centre.y - thick * 0.5f;
-            go.transform.localPosition = at - new Vector3(centre.x, bottom, centre.z);
-            return thick;
-        }
-
-        /// <summary>Puts one prop with its bottom on <paramref name="at"/>, scaled so its widest side is <paramref name="size"/>. Returns its height.</summary>
-        private static float Place(GameObject root, string what, string[] names, Vector3 at, float size, float yaw, bool flat)
-        {
-            var p = Find(what, names);
-            if (p == null) return 0f;
-            var go = Piece(root, p, out var bounds);
-            Vector3 s = bounds.size;
-            float k = size / Mathf.Max(0.01f, Mathf.Max(s.x, s.z));
+            if (p == null) return null;
+            if (lengthAlongZ) p = LaidFlat(p);
+            var go = Piece(root, p, out var b);
+            Vector3 s = b.size;
+            if (lengthAlongZ && s.x > s.z) { yaw += 90f; size = new Vector3(size.z, size.y, size.x); }
+            var k = new Vector3(size.x / Mathf.Max(0.01f, s.x), size.y / Mathf.Max(0.01f, s.y), size.z / Mathf.Max(0.01f, s.z));
             var rot = Quaternion.Euler(0f, yaw, 0f);
             go.transform.localRotation = rot;
-            go.transform.localScale = Vector3.one * k;
-            Vector3 centre = rot * bounds.center * k;
-            go.transform.localPosition = at - new Vector3(centre.x, centre.y - s.y * 0.5f * k, centre.z);
-            return s.y * k;
+            go.transform.localScale = k;
+            Vector3 c = rot * Vector3.Scale(b.center, k);
+            go.transform.localPosition = at - new Vector3(c.x, c.y - size.y * 0.5f, c.z);
+            return go;
+        }
+
+        /// <summary>
+        /// The prop tipped so its thinnest side is up. The RV mattress stands upright in its own space; the bed frame
+        /// above it lays it down.
+        /// </summary>
+        private static Prop LaidFlat(Prop p)
+        {
+            Vector3 s = Size(p);
+            Quaternion tilt;
+            if (s.y <= s.x && s.y <= s.z) return p;
+            tilt = s.z <= s.x ? Quaternion.Euler(-90f, 0f, 0f) : Quaternion.Euler(0f, 0f, 90f);
+            return new Prop { Mesh = p.Mesh, Materials = p.Materials, Name = p.Name, Rot = tilt * p.Rot, Scale = p.Scale };
+        }
+
+        /// <summary>The size of a prop with the scale and tilt of the object it came from.</summary>
+        private static Vector3 Size(Prop p) => Abs(Matrix4x4.TRS(Vector3.zero, p.Rot, p.Scale).MultiplyVector(p.Mesh.bounds.size));
+
+        /// <summary>A small fixed turn per piece, so a grid of the same prop does not look copied.</summary>
+        private static float Jitter(int i, float max) => max * Mathf.Sin(i * 2.399f + 0.7f);
+
+        /// <summary>Two straps across a load on the roof, a quarter of the length in from each end.</summary>
+        private static void Straps(GameObject root, Vector3 top, float length, float over, float edge, float height)
+        {
+            Strap(root, top + new Vector3(0f, 0f, 0.25f * length), over, edge, height, 0.05f);
+            Strap(root, top + new Vector3(0f, 0f, -0.25f * length), over, edge, height, 0.05f);
+        }
+
+        /// <summary>
+        /// A strap across the car through <paramref name="at"/> (the middle of the surface the load stands on): flat over
+        /// the load between ±<paramref name="over"/> at <paramref name="height"/>, then down both sides to ±<paramref name="edge"/>,
+        /// <paramref name="below"/> under the surface so it meets a curved roof.
+        /// </summary>
+        private static void Strap(GameObject root, Vector3 at, float over, float edge, float height, float below)
+        {
+            var mat = StrapMaterial();
+            if (mat == null) return;
+            const float Thick = 0.012f;
+            float y = at.y + height + Thick * 0.5f;
+            Bar(root, mat, new Vector3(at.x - over, y, at.z), new Vector3(at.x + over, y, at.z));
+            foreach (float sx in new[] { -1f, 1f })
+                Bar(root, mat, new Vector3(at.x + sx * over, y, at.z), new Vector3(at.x + sx * (edge + Thick * 0.5f), at.y - below, at.z));
+        }
+
+        /// <summary>One flat piece of strap from <paramref name="a"/> to <paramref name="b"/>, its face towards the outside.</summary>
+        private static void Bar(GameObject root, Material mat, Vector3 a, Vector3 b)
+        {
+            const float Wide = 0.05f, Thick = 0.012f;
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = "Trunk_strap";
+            var col = go.GetComponent<Collider>();
+            if (col != null) UnityEngine.Object.DestroyImmediate(col);
+            go.transform.SetParent(root.transform, false);
+            Vector3 d = b - a;
+            go.transform.localPosition = (a + b) * 0.5f;
+            go.transform.localRotation = Quaternion.FromToRotation(Vector3.right, d.normalized);
+            go.transform.localScale = new Vector3(d.magnitude + Thick, Thick, Wide);
+            go.GetComponent<MeshRenderer>().sharedMaterial = mat;
+        }
+
+        /// <summary>The strap's look: a tyre's material without its texture, in tie-down blue.</summary>
+        private static Material StrapMaterial()
+        {
+            if (_strap != null) return _strap;
+            var p = Find("strap", StrapSource);
+            if (p == null) return null;
+            _strap = new Material(p.Materials[0]) { name = "Trunk_strap" };
+            foreach (string tex in new[] { "_BaseMap", "_MainTex", "_BumpMap", "_MetallicGlossMap", "_OcclusionMap" })
+                if (_strap.HasProperty(tex)) _strap.SetTexture(tex, null);
+            if (_strap.HasProperty("_BaseColor")) _strap.SetColor("_BaseColor", StrapColour);
+            if (_strap.HasProperty("_Color")) _strap.SetColor("_Color", StrapColour);
+            return _strap;
         }
 
         private static GameObject Piece(GameObject root, Prop p, out Bounds bounds)
@@ -198,11 +277,15 @@ namespace MarcosBodyshop.Builtin
         {
             if (_props.TryGetValue(what, out var cached) && cached.Mesh != null) return cached;
             var filters = Resources.FindObjectsOfTypeAll<MeshFilter>();
-            foreach (string name in names)
+            foreach (string entry in names)
+            {
+                int at = entry.IndexOf('@');
+                string name = at < 0 ? entry : entry.Substring(0, at), part = at < 0 ? null : entry.Substring(at + 1);
                 foreach (var f in filters)
                 {
                     var mesh = f != null ? f.sharedMesh : null;
                     if (mesh == null || !string.Equals(mesh.name, name, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (part != null && Path(f.transform).IndexOf(part, StringComparison.OrdinalIgnoreCase) < 0) continue;
                     var r = f.GetComponent<MeshRenderer>();
                     if (r == null || r.sharedMaterials == null || r.sharedMaterials.Length == 0) continue;
                     var prop = new Prop { Mesh = mesh, Materials = r.sharedMaterials, Name = "Trunk_" + what, Rot = NoYaw(f.transform.localRotation), Scale = f.transform.localScale };
@@ -211,18 +294,74 @@ namespace MarcosBodyshop.Builtin
                         + ", local scale " + prop.Scale.ToString("F2") + ", rotation " + prop.Rot.eulerAngles.ToString("F0") + ".");
                     return prop;
                 }
+            }
             if (_missingLogged.Add(what)) Core.Log.Warning("[Trunk] no " + what + " prop found (meshes " + string.Join(", ", names) + ") - the roof load goes without it.");
             return null;
+        }
+
+#if DEBUG
+        private static readonly List<GameObject> _shown = new List<GameObject>();
+
+        /// <summary>Every loaded mesh with that name, one line per distinct mesh: index, size with the source's scale, source path.</summary>
+        internal static List<string> ListMeshes(string name, out List<MeshFilter> found)
+        {
+            found = new List<MeshFilter>();
+            var lines = new List<string>();
+            var seen = new HashSet<int>();
+            foreach (var f in Resources.FindObjectsOfTypeAll<MeshFilter>())
+            {
+                var mesh = f != null ? f.sharedMesh : null;
+                if (mesh == null || !string.Equals(mesh.name, name, StringComparison.OrdinalIgnoreCase) || !seen.Add(mesh.GetInstanceID())) continue;
+                if (f.GetComponent<MeshRenderer>() == null) continue;
+                var size = Abs(Matrix4x4.TRS(Vector3.zero, NoYaw(f.transform.localRotation), f.transform.localScale).MultiplyVector(mesh.bounds.size));
+                lines.Add(found.Count + ": " + size.ToString("F2") + " from " + Path(f.transform));
+                found.Add(f);
+            }
+            return lines;
+        }
+
+        /// <summary>Puts a copy of mesh <paramref name="name"/> (the <paramref name="index"/>th distinct one) on the ground at <paramref name="at"/>.</summary>
+        internal static string Show(string name, int index, Vector3 at, float yaw)
+        {
+            ListMeshes(name, out var found);
+            if (index < 0 || index >= found.Count) return "no mesh '" + name + "' #" + index + " (" + found.Count + " loaded)";
+            var f = found[index];
+            var p = new Prop { Mesh = f.sharedMesh, Materials = f.GetComponent<MeshRenderer>().sharedMaterials, Name = "PropShow_" + name,
+                Rot = NoYaw(f.transform.localRotation), Scale = f.transform.localScale };
+            var root = new GameObject("PropShow");
+            var go = Piece(root, p, out var b);
+            go.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
+            Vector3 c = go.transform.localRotation * b.center;
+            go.transform.localPosition = new Vector3(-c.x, b.extents.y - c.y, -c.z);
+            root.transform.position = at;
+            _shown.Add(root);
+            return name + " #" + index + " " + b.size.ToString("F2") + " at " + at.ToString("F1");
+        }
+
+        internal static string ClearShown()
+        {
+            int n = _shown.Count;
+            foreach (var g in _shown) if (g != null) UnityEngine.Object.Destroy(g);
+            _shown.Clear();
+            return n + " shown prop(s) removed";
+        }
+#endif
+
+        private static string Path(Transform t)
+        {
+            string s = t.name;
+            for (var p = t.parent; p != null; p = p.parent) s = p.name + "/" + s;
+            return s;
         }
 
         /// <summary>The prop meshes the roof load uses and where they came from, for the debug console.</summary>
         internal static string Report()
         {
             var parts = new List<string>();
-            foreach (var w in new[] { ("bag", BagMeshes), ("box", BoxMeshes), ("mattress", MattressMeshes) })
+            foreach (var w in new[] { ("bag", BagMeshes), ("box", BoxMeshes), ("mattress", MattressMeshes), ("armchair", ArmchairMeshes), ("strap", StrapSource) })
             {
                 var p = Find(w.Item1, w.Item2);
-                parts.Add(w.Item1 + ": " + (p != null ? p.Mesh.name + " " + Abs(Matrix4x4.TRS(Vector3.zero, p.Rot, p.Scale).MultiplyVector(p.Mesh.bounds.size)).ToString("F2") : "missing"));
+                parts.Add(w.Item1 + ": " + (p != null ? p.Mesh.name + " " + Size(p).ToString("F2") : "missing"));
             }
             return string.Join(" | ", parts);
         }

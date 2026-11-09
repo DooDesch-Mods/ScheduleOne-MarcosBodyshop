@@ -81,6 +81,7 @@ namespace MarcosBodyshop.Debug
                     if (a.Length > 0 && float.TryParse(a, NumberStyles.Float, CultureInfo.InvariantCulture, out float secs)) { Builtin.Nitro.ForceUntil = Time.time + secs; Say("nitro held for " + a + " s"); }
                     Say(Builtin.Nitro.Describe());
                     break;
+                case "prop": Prop(p); break;
                 case "trunk":
                     if (a == "put" || a == "take") { Say("trunk " + a + ": " + TrunkSlot(a, p)); break; }
                     if (a == "move") { Say("trunk move: " + MoveHallCar(p)); break; }
@@ -118,6 +119,33 @@ namespace MarcosBodyshop.Debug
             return "slot " + i + " of " + v.VehicleName + " holds " + id;
         }
 
+        /// <summary>
+        /// <c>bodyshop prop list Mesh_Name</c> lists every loaded mesh of that name; <c>bodyshop prop show Mesh_Name index x y z [yaw]</c>
+        /// stands a copy on the ground there; <c>bodyshop prop clear</c> removes the copies. Mesh names with spaces use '_' for
+        /// the space only when no mesh has the name with the underscore.
+        /// </summary>
+        private static void Prop(string[] p)
+        {
+            string op = p.Length > 2 ? p[2].ToLowerInvariant() : "";
+            if (op == "clear") { Say("prop: " + Builtin.RoofLoad.ClearShown()); return; }
+            if (p.Length < 4) { Say("prop list Mesh_Name | show Mesh_Name index x y z [yaw] | clear"); return; }
+            string name = p[3];
+            if (Builtin.RoofLoad.ListMeshes(name, out _).Count == 0 && name.Contains("_")) name = name.Replace('_', ' ');
+            if (op == "list")
+            {
+                var lines = Builtin.RoofLoad.ListMeshes(name, out _);
+                Say("prop list '" + name + "': " + (lines.Count == 0 ? "none loaded" : string.Join(" | ", lines)));
+                return;
+            }
+            if (op != "show" || p.Length < 8) { Say("prop show Mesh_Name index x y z [yaw]"); return; }
+            var f = new float[5];
+            bool ok = int.TryParse(p[4], NumberStyles.Integer, CultureInfo.InvariantCulture, out int index);
+            for (int i = 0; i < 4 && ok; i++)
+                ok = i == 3 && p.Length < 9 ? true : float.TryParse(p[5 + i], NumberStyles.Float, CultureInfo.InvariantCulture, out f[i]);
+            if (!ok) { Say("prop show: index and numbers needed"); return; }
+            Say("prop show: " + Builtin.RoofLoad.Show(name, index, new Vector3(f[0], f[1], f[2]), f[3]));
+        }
+
         /// <summary><c>bodyshop trunk move x y z</c> puts the car in Marco's hall at that spot, so the next car can come in.</summary>
         private static string MoveHallCar(string[] p)
         {
@@ -128,7 +156,8 @@ namespace MarcosBodyshop.Debug
             for (int i = 0; i < 3; i++)
                 if (!float.TryParse(p[i + 3], NumberStyles.Float, CultureInfo.InvariantCulture, out f[i])) return "'" + p[i + 3] + "' is not a number";
             var rb = v.GetComponent<Rigidbody>();
-            if (rb != null) { rb.velocity = Vector3.zero; rb.angularVelocity = Vector3.zero; }
+            // Kinematic, so it stays where it is put: a car that falls below the map is put back by the game.
+            if (rb != null) { rb.velocity = Vector3.zero; rb.angularVelocity = Vector3.zero; rb.isKinematic = true; }
             v.transform.position = new Vector3(f[0], f[1], f[2]);
             if (rb != null) rb.position = v.transform.position;
             return v.VehicleName + " moved to " + v.transform.position.ToString("F1");
