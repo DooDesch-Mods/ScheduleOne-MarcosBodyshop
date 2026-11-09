@@ -4,6 +4,20 @@ All notable changes to Marco's Bodyshop are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to Semantic Versioning.
 
+## [1.2.0] - 2026-11-09
+
+### Added
+- Marco sells three trunk upgrades (Spare Tyres, Box Stack, Moving Day) for up to 15 more trunk slots, each with its
+  own load on the roof.
+- Grip Tyres in the Tyres category: more grip, the opposite of the Drift Tyres. A car has one or the other.
+
+### Changed
+- The garage menu also checks S1API (3.2.1 or newer) and names every missing or outdated mod at once.
+- The Thunderstore page links the required mods on Nexus Mods and GitHub, for when Thunderstore cannot install them.
+
+### Fixed
+- The paint and tuning camera no longer looks through the wall on long vans like the Veeper.
+
 ## [1.1.4] - 2026-11-03
 
 ### Fixed

@@ -7,7 +7,7 @@
 > - **Chassis:** [Nexus Mods](https://www.nexusmods.com/schedule1/mods/2918) · [GitHub](https://github.com/DooDesch-Mods/ScheduleOne-Chassis/releases/latest)
 > - **Sideload:** [Nexus Mods](https://www.nexusmods.com/schedule1/mods/2360) · [GitHub](https://github.com/DooDesch-Mods/ScheduleOne-Sideload/releases/latest)
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
 ![Game](https://img.shields.io/badge/game-Schedule%20I-purple)
 ![MelonLoader](https://img.shields.io/badge/MelonLoader-0.7.3+-green)
 ![Status](https://img.shields.io/badge/status-beta-yellow)
