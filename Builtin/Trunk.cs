@@ -29,9 +29,9 @@ namespace MarcosBodyshop.Builtin
 
         private static readonly (string id, string label, int price)[] Tiers =
         {
-            ("bodyshop_trunk_1", "Roof Bags", 1250),
+            ("bodyshop_trunk_1", "Spare Tyres", 1250),
             ("bodyshop_trunk_2", "Box Stack", 2500),
-            ("bodyshop_trunk_3", "Mattress Run", 4375),
+            ("bodyshop_trunk_3", "Moving Day", 4375),
         };
 
         /// <summary>The game's own trunk size per vehicle code.</summary>

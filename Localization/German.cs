@@ -124,9 +124,9 @@ namespace MarcosBodyshop.Localization
                 ["Left Alt"] = "Alt links",
 
                 // Trunk
-                ["Roof Bags"] = "Müllsäcke aufs Dach",
+                ["Spare Tyres"] = "Reifenstapel",
                 ["Box Stack"] = "Kistenturm",
-                ["Mattress Run"] = "Matratzen-Umzug",
+                ["Moving Day"] = "Umzugstag",
                 ["{0} slots"] = "{0} Plätze",
                 ["{0} slots."] = "{0} Plätze.",
                 ["Empty the extra trunk space first."] = "Räum zuerst den zusätzlichen Kofferraum leer.",

@@ -7,23 +7,31 @@ using UnityEngine;
 namespace MarcosBodyshop.Builtin
 {
     /// <summary>
-    /// The roof load of the trunk tiers, made from the game's own props: a layer of bin bags (tier 1), a block of boxes
-    /// (tier 2), and a mattress with an armchair, a box and a bag on top (tier 3), each held by straps. The pieces sit on the highest flat stretch of the roof, found by
-    /// casting down onto the car's own colliders, so a pickup carries them on its cab.
+    /// The roof load of the trunk tiers, made from the game's own props: stacks of spare tyres (tier 1), a block of boxes
+    /// (tier 2), and a moving load of an upturned TV cabinet, an old TV and a box (tier 3), each held by straps. The pieces
+    /// sit on the highest flat stretch of the roof, found by casting down onto the car's own colliders, so a pickup
+    /// carries them on its cab.
     /// </summary>
     internal static class RoofLoad
     {
-        private static readonly string[] BagMeshes = { "Garbage bag", "GarbageBag", "Trash bag", "Bag_LOD0" };
+        // "name@part" takes a mesh only from an object whose path holds that part, for names more than one mesh uses.
+        // The decoration wheel in the sewer is a tyre with its rim as separate meshes; the rim fills the hole of the tyre.
+        private static readonly string[] TyreMeshes = { "Tire@Wheel Prop", "Tire" };
+        private static readonly Dictionary<string, string[]> Attached = new Dictionary<string, string[]> { ["tyre"] = new[] { "Rim", "Rim.001" } };
         private static readonly string[] BoxMeshes = { "Box", "Box_0", "Box_1", "Cardboard Box", "CardboardBox" };
-        // "name@part" takes a mesh only from an object whose path holds that part: two meshes are called "Bed", and the
-        // mattress is the one inside the RV.
-        private static readonly string[] MattressMeshes = { "Bed@Interior", "Mattress", "Hippie_Bed_LOD0" };
-        private static readonly string[] ArmchairMeshes = { "Armchair" };
+        private static readonly string[] TvMeshes = { "TV@Office Props", "TV" };
+        private static readonly string[] CabinetMeshes = { "CoffeeTable@TV_Built", "CoffeeTable" };
         private static readonly string[] StrapSource = { "Tire" };
         private static readonly Color StrapColour = new Color(0.1f, 0.3f, 0.85f);
         private static Material _strap;
 
-        private sealed class Prop { internal Mesh Mesh; internal Material[] Materials; internal string Name; internal Quaternion Rot = Quaternion.identity; internal Vector3 Scale = Vector3.one; }
+        private sealed class Prop
+        {
+            internal Mesh Mesh; internal Material[] Materials; internal string Name; internal Quaternion Rot = Quaternion.identity; internal Vector3 Scale = Vector3.one;
+            /// <summary>Meshes that belong to this one (the rim of a tyre), placed in the space of the main mesh. They sit inside its bounds.</summary>
+            internal List<Part> Parts;
+        }
+        private sealed class Part { internal Mesh Mesh; internal Material[] Materials; internal Vector3 Pos; internal Quaternion Rot; internal Vector3 Scale; }
         private static readonly Dictionary<string, Prop> _props = new Dictionary<string, Prop>();
         private static readonly HashSet<string> _missingLogged = new HashSet<string>();
 
@@ -33,27 +41,34 @@ namespace MarcosBodyshop.Builtin
             try
             {
                 Roof(v, out Vector3 top, out float length, out float width);
-                // Everything lines up with the car in a grid of two across, held down by straps across the load.
+                // Everything lines up with the car and is held down by straps across the load.
                 float w = width * 0.9f, half = w * 0.5f;
                 switch (tier)
                 {
                     case 1:
                     {
-                        // Bin bags lying flat, pressed against each other.
-                        int n = Mathf.Clamp(Mathf.RoundToInt(length / 0.55f), 2, 4);
-                        float cell = length / n, h = Mathf.Min(0.34f, half * 0.7f);
-                        var bag = Find("bag", BagMeshes);
+                        // Stacks of two tyres lying flat, two across and one or two rows along the roof, a strap over each row.
+                        var tyre = Find("tyre", TyreMeshes);
+                        if (tyre == null) break;
+                        tyre = LaidFlat(tyre);
+                        Vector3 ts = Size(tyre);
+                        float d = Mathf.Min(half * 0.98f, 0.75f);
+                        int n = Mathf.Clamp(Mathf.FloorToInt(length / (d * 1.04f)), 1, 2);
+                        d = Mathf.Min(d, length / (n * 1.04f));
+                        float th = d * ts.y / Mathf.Max(0.01f, Mathf.Max(ts.x, ts.z));
                         for (int i = 0; i < n; i++)
+                        {
+                            float z = (i + 0.5f - n * 0.5f) * (length / n);
                             for (int s = 0; s < 2; s++)
-                                Fit(root, bag, top + new Vector3((s - 0.5f) * half, 0f, (i + 0.5f - n * 0.5f) * cell),
-                                    new Vector3(half * 1.04f, h, cell * 1.04f), Jitter(i * 2 + s, 6f));
-                        // The bags are round, so the strap runs over their tops and slants down to the roof's edges.
-                        Straps(root, top, length, half * 0.55f, half + 0.02f, h * 0.9f);
+                                for (int layer = 0; layer < 2; layer++)
+                                    Fit(root, tyre, top + new Vector3((s - 0.5f) * d * 1.02f, layer * th, z), new Vector3(d, th, d), Jitter(i * 4 + s * 2 + layer, 20f));
+                            Strap(root, top + new Vector3(0f, 0f, z), d * 1.02f, d * 1.02f, 2f * th, 0.05f);
+                        }
                         break;
                     }
                     case 2:
                     {
-                        // A block of boxes, two layers high.
+                        // A block of boxes, two across and two layers high.
                         int n = Mathf.Clamp(Mathf.RoundToInt(length / half), 2, 4);
                         float cell = length / n, h = Mathf.Min(0.4f, half * 0.85f);
                         var box = Find("box", BoxMeshes);
@@ -67,25 +82,35 @@ namespace MarcosBodyshop.Builtin
                     }
                     default:
                     {
-                        // A mattress over the whole roof with an armchair on its back half, facing backwards, and a box
-                        // and a bin bag at the front. Straps hold the front pieces and both ends of the mattress.
-                        float ml = length * 1.2f, mw = w * 1.1f, mh = Mathf.Clamp(mw * 0.2f, 0.22f, 0.28f);
-                        float m = Fit(root, Find("mattress", MattressMeshes), top, new Vector3(mw, mh, ml), 0f, lengthAlongZ: true) != null ? mh : 0f;
-                        Vector3 on = top + new Vector3(0f, m, 0f);
-                        var chair = Find("armchair", ArmchairMeshes);
-                        if (chair != null)
+                        // Moving day: the TV cabinet upside down with its legs in the air on the back half, the old TV
+                        // and a box as high as the TV side by side at the front.
+                        var cabinet = Find("cabinet", CabinetMeshes);
+                        if (cabinet != null)
                         {
-                            var cs = Size(chair);
-                            float k = Mathf.Min(w * 0.65f / Mathf.Max(0.01f, cs.x), length * 0.45f / Mathf.Max(0.01f, cs.z));
-                            Fit(root, chair, on + new Vector3(0f, 0f, -0.22f * length), cs * k, 180f);
+                            var up = Tilted(cabinet, Quaternion.Euler(0f, 0f, 180f));
+                            Vector3 cs = Size(up);
+                            bool across = cs.x > cs.z;
+                            float cl = across ? cs.x : cs.z, cw = across ? cs.z : cs.x;
+                            float k = Mathf.Min(w * 0.6f / Mathf.Max(0.01f, cw), length * 0.62f / Mathf.Max(0.01f, cl));
+                            Fit(root, up, top + new Vector3(0f, 0f, -0.2f * length), cs * k, across ? 90f : 0f);
+                            Strap(root, top + new Vector3(0f, 0f, -0.2f * length), cw * k * 0.5f, half, cs.y * k, 0.05f);
                         }
-                        float front = 0.24f * length, side = Mathf.Min(half * 0.8f, length * 0.34f);
-                        Fit(root, Find("box", BoxMeshes), on + new Vector3(-0.5f * half, 0f, front), new Vector3(side, side, side), Jitter(1, 3f));
-                        Fit(root, Find("bag", BagMeshes), on + new Vector3(0.5f * half, 0f, front), new Vector3(side, side * 0.8f, side), Jitter(2, 6f));
-                        float reach = 0.5f * half + 0.5f * side;
-                        Strap(root, on + new Vector3(0f, 0f, front), reach, reach, side, 0f);
-                        Strap(root, top + new Vector3(0f, 0f, 0.55f * length), mw * 0.5f, mw * 0.5f, m, 0f);
-                        Strap(root, top + new Vector3(0f, 0f, -0.55f * length), mw * 0.5f, mw * 0.5f, m, 0f);
+                        float front = 0.25f * length;
+                        float tvH = 0f, tvW = 0f;
+                        var tv = Find("tv", TvMeshes);
+                        if (tv != null)
+                        {
+                            Vector3 vs = Size(tv);
+                            // The screen faces forward.
+                            float k = Mathf.Min(w * 0.36f / Mathf.Max(0.01f, vs.x), length * 0.3f / Mathf.Max(0.01f, vs.z));
+                            tvH = vs.y * k; tvW = vs.x * k;
+                            Fit(root, tv, top + new Vector3(-0.5f * half, 0f, front), vs * k, 0f);
+                        }
+                        if (tvH <= 0f) tvH = Mathf.Min(half * 0.8f, length * 0.34f);
+                        float side = Mathf.Min(w * 0.36f, length * 0.3f);
+                        Fit(root, Find("box", BoxMeshes), top + new Vector3(0.5f * half, 0f, front), new Vector3(side, tvH, side), Jitter(1, 3f));
+                        float reach = Mathf.Max(0.5f * half + 0.5f * Mathf.Max(tvW, side), 0.5f * half + 0.5f * side);
+                        Strap(root, top + new Vector3(0f, 0f, front), reach, reach, tvH, 0.05f);
                         break;
                     }
                 }
@@ -175,17 +200,19 @@ namespace MarcosBodyshop.Builtin
         }
 
         /// <summary>
-        /// The prop tipped so its thinnest side is up. The RV mattress stands upright in its own space; the bed frame
-        /// above it lays it down.
+        /// The prop tipped so its thinnest side is up. A tyre stands upright or lies flat depending on the wheel it was
+        /// taken from.
         /// </summary>
         private static Prop LaidFlat(Prop p)
         {
             Vector3 s = Size(p);
-            Quaternion tilt;
             if (s.y <= s.x && s.y <= s.z) return p;
-            tilt = s.z <= s.x ? Quaternion.Euler(-90f, 0f, 0f) : Quaternion.Euler(0f, 0f, 90f);
-            return new Prop { Mesh = p.Mesh, Materials = p.Materials, Name = p.Name, Rot = tilt * p.Rot, Scale = p.Scale };
+            return Tilted(p, s.z <= s.x ? Quaternion.Euler(-90f, 0f, 0f) : Quaternion.Euler(0f, 0f, 90f));
         }
+
+        /// <summary>The prop turned by <paramref name="tilt"/> on top of the turn it came with.</summary>
+        private static Prop Tilted(Prop p, Quaternion tilt) =>
+            new Prop { Mesh = p.Mesh, Materials = p.Materials, Name = p.Name, Rot = tilt * p.Rot, Scale = p.Scale, Parts = p.Parts };
 
         /// <summary>The size of a prop with the scale and tilt of the object it came from.</summary>
         private static Vector3 Size(Prop p) => Abs(Matrix4x4.TRS(Vector3.zero, p.Rot, p.Scale).MultiplyVector(p.Mesh.bounds.size));
@@ -259,6 +286,17 @@ namespace MarcosBodyshop.Builtin
             inner.AddComponent<MeshFilter>().sharedMesh = p.Mesh;
             var r = inner.AddComponent<MeshRenderer>();
             r.sharedMaterials = p.Materials;
+            if (p.Parts != null)
+                foreach (var part in p.Parts)
+                {
+                    var pg = new GameObject("Part");
+                    pg.transform.SetParent(inner.transform, false);
+                    pg.transform.localPosition = part.Pos;
+                    pg.transform.localRotation = part.Rot;
+                    pg.transform.localScale = part.Scale;
+                    pg.AddComponent<MeshFilter>().sharedMesh = part.Mesh;
+                    pg.AddComponent<MeshRenderer>().sharedMaterials = part.Materials;
+                }
             var m = Matrix4x4.TRS(Vector3.zero, p.Rot, p.Scale);
             var b = p.Mesh.bounds;
             bounds = new Bounds(m.MultiplyPoint3x4(b.center), Vector3.zero);
@@ -290,13 +328,46 @@ namespace MarcosBodyshop.Builtin
                     if (r == null || r.sharedMaterials == null || r.sharedMaterials.Length == 0) continue;
                     var prop = new Prop { Mesh = mesh, Materials = r.sharedMaterials, Name = "Trunk_" + what, Rot = NoYaw(f.transform.localRotation), Scale = f.transform.localScale };
                     _props[what] = prop;
-                    Core.Log.Msg("[Trunk] " + what + " prop: mesh '" + mesh.name + "' from '" + f.name + "', " + mesh.bounds.size.ToString("F2")
-                        + ", local scale " + prop.Scale.ToString("F2") + ", rotation " + prop.Rot.eulerAngles.ToString("F0") + ".");
+                    string attached = Attach(prop, f.transform, what);
+                    Core.Log.Msg("[Trunk] " + what + " prop: mesh '" + mesh.name + "' from '" + Path(f.transform) + "', " + mesh.bounds.size.ToString("F2")
+                        + ", local scale " + prop.Scale.ToString("F2") + ", rotation " + prop.Rot.eulerAngles.ToString("F0") + attached + ".");
                     return prop;
                 }
             }
             if (_missingLogged.Add(what)) Core.Log.Warning("[Trunk] no " + what + " prop found (meshes " + string.Join(", ", names) + ") - the roof load goes without it.");
             return null;
+        }
+
+        /// <summary>
+        /// Adds the sibling meshes listed in <see cref="Attached"/> for <paramref name="what"/> to the prop, each in the space
+        /// of the main mesh <paramref name="main"/>. Returns a note for the log line.
+        /// </summary>
+        private static string Attach(Prop prop, Transform main, string what)
+        {
+            if (!Attached.TryGetValue(what, out var names)) return "";
+            var parent = main.parent;
+            if (parent == null) { Core.Log.Warning("[Trunk] " + what + " prop has no parent, so no " + string.Join("/", names) + " goes with it."); return ", without " + string.Join("/", names); }
+            prop.Parts = new List<Part>();
+            var found = new List<string>();
+            foreach (string n in names)
+            {
+                var t = parent.Find(n);
+                var f = t != null ? t.GetComponent<MeshFilter>() : null;
+                var r = t != null ? t.GetComponent<MeshRenderer>() : null;
+                if (f == null || f.sharedMesh == null || r == null || r.sharedMaterials == null || r.sharedMaterials.Length == 0) continue;
+                Vector3 ls = main.lossyScale, ps = t.lossyScale;
+                prop.Parts.Add(new Part
+                {
+                    Mesh = f.sharedMesh, Materials = r.sharedMaterials,
+                    Pos = main.InverseTransformPoint(t.position),
+                    Rot = Quaternion.Inverse(main.rotation) * t.rotation,
+                    Scale = new Vector3(ps.x / Mathf.Max(1e-4f, ls.x), ps.y / Mathf.Max(1e-4f, ls.y), ps.z / Mathf.Max(1e-4f, ls.z)),
+                });
+                found.Add(n);
+            }
+            if (found.Count < names.Length)
+                Core.Log.Warning("[Trunk] " + what + " prop: found " + found.Count + " of " + names.Length + " attached meshes (" + string.Join(", ", names) + ") under '" + Path(parent) + "'.");
+            return ", with " + (found.Count == 0 ? "nothing" : string.Join(" + ", found));
         }
 
 #if DEBUG
@@ -358,7 +429,7 @@ namespace MarcosBodyshop.Builtin
         internal static string Report()
         {
             var parts = new List<string>();
-            foreach (var w in new[] { ("bag", BagMeshes), ("box", BoxMeshes), ("mattress", MattressMeshes), ("armchair", ArmchairMeshes), ("strap", StrapSource) })
+            foreach (var w in new[] { ("tyre", TyreMeshes), ("box", BoxMeshes), ("tv", TvMeshes), ("cabinet", CabinetMeshes), ("strap", StrapSource) })
             {
                 var p = Find(w.Item1, w.Item2);
                 parts.Add(w.Item1 + ": " + (p != null ? p.Mesh.name + " " + Size(p).ToString("F2") : "missing"));
