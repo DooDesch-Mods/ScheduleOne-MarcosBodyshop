@@ -27,6 +27,7 @@ namespace MarcosBodyshop.Localization
                 ["Tyres"] = "Reifen",
                 ["Steering"] = "Lenkung",
                 ["Weight"] = "Gewicht",
+                ["Trunk"] = "Kofferraum",
 
                 // Category notes and shared entries
                 ["Stock"] = "Serie",
@@ -121,6 +122,14 @@ namespace MarcosBodyshop.Localization
                 ["Right Ctrl"] = "Strg rechts",
                 ["Left Shift"] = "Umschalt links",
                 ["Left Alt"] = "Alt links",
+
+                // Trunk
+                ["Roof Bags"] = "Müllsäcke aufs Dach",
+                ["Box Stack"] = "Kistenturm",
+                ["Mattress Run"] = "Matratzen-Umzug",
+                ["{0} slots"] = "{0} Plätze",
+                ["{0} slots."] = "{0} Plätze.",
+                ["Empty the extra trunk space first."] = "Räum zuerst den zusätzlichen Kofferraum leer.",
 
                 // Stat bars
                 ["Speed"] = "Tempo",

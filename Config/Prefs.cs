@@ -39,6 +39,9 @@ namespace MarcosBodyshop.Config
             ("bodyshop_steering_1", 950, "Quick Steering Rack.", 750), ("bodyshop_steering_2", 2200, "Race Steering Rack.", 1750),
             ("bodyshop_weight_1", 1250, "Lightweight Panels.", 1000), ("bodyshop_weight_2", 3125, "Carbon Body.", 2500),
             ("bodyshop_nitro", 6250, "Nitrous Kit.", 5000),
+            ("bodyshop_trunk_1", 1250, "Roof Bags: 5 more trunk slots.", 1250),
+            ("bodyshop_trunk_2", 2500, "Box Stack: 10 more trunk slots.", 2500),
+            ("bodyshop_trunk_3", 4375, "Mattress Run: 15 more trunk slots.", 4375),
         };
 
         /// <summary>Seconds an empty nitro tank needed to refill in 1.0.x.</summary>

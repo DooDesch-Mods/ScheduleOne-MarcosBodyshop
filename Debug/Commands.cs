@@ -22,6 +22,8 @@ namespace MarcosBodyshop.Debug
     /// <item><c>bodyshop cash N</c> - add N to the bank balance.</item>
     /// <item><c>bodyshop radio x y z yaw</c> - move the workshop radio (to find its spot).</item>
     /// <item><c>bodyshop park x z yaw</c> - where the yard puts a vehicle on the next open (to find the spot).</item>
+    /// <item><c>bodyshop trunk</c> - every car's trunk tier and slot count, and the props of the roof load.</item>
+    /// <item><c>bodyshop trunk put N [item]</c> / <c>take N</c> - fill or empty slot N of the trunk of the car in the hall.</item>
     /// <item><c>bodyshop nitro [seconds]</c> - burn nitro in the driven car without the key; no number shows the state.</item>
     /// </list>
     /// </summary>
@@ -79,10 +81,57 @@ namespace MarcosBodyshop.Debug
                     if (a.Length > 0 && float.TryParse(a, NumberStyles.Float, CultureInfo.InvariantCulture, out float secs)) { Builtin.Nitro.ForceUntil = Time.time + secs; Say("nitro held for " + a + " s"); }
                     Say(Builtin.Nitro.Describe());
                     break;
+                case "trunk":
+                    if (a == "put" || a == "take") { Say("trunk " + a + ": " + TrunkSlot(a, p)); break; }
+                    if (a == "move") { Say("trunk move: " + MoveHallCar(p)); break; }
+                    Say("trunk: " + Builtin.Trunk.Report());
+                    {
+                        var hall = Registry.VehicleIn(BodyshopApi.MarcoGarage, out string hallWhy, out _);
+                        Say("trunk hall: " + (hall != null ? Builtin.Trunk.ReportOf(hall) : "no vehicle in the hall: " + hallWhy));
+                    }
+                    Say("trunk props: " + Builtin.RoofLoad.Report());
+                    break;
                 default:
-                    Say("bodyshop nitro [seconds] | open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | radio x y z yaw | park x z yaw | cash N");
+                    Say("bodyshop trunk | nitro [seconds] | open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | radio x y z yaw | park x z yaw | cash N");
                     break;
             }
+        }
+
+        /// <summary>
+        /// <c>bodyshop trunk put N [item]</c> stores one item in slot N of the trunk of the car in Marco's hall;
+        /// <c>bodyshop trunk take N</c> empties that slot.
+        /// </summary>
+        private static string TrunkSlot(string op, string[] p)
+        {
+            var v = Registry.VehicleIn(BodyshopApi.MarcoGarage, out string why, out _);
+            if (v == null) return "no vehicle in the hall: " + why;
+            var s = v.Storage;
+            if (s == null || s.ItemSlots == null) return v.VehicleName + " has no trunk";
+            if (p.Length < 4 || !int.TryParse(p[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int i) || i < 0 || i >= s.ItemSlots.Count)
+                return "needs a slot number from 0 to " + (s.ItemSlots.Count - 1);
+            var slot = s.ItemSlots[i];
+            if (op == "take") { slot.ClearStoredInstance(); return "slot " + i + " of " + v.VehicleName + " emptied"; }
+            string id = p.Length > 4 ? p[4] : "ogkush";
+            var def = Il2CppScheduleOne.Registry.GetItem(id);
+            if (def == null) return "no item '" + id + "'";
+            slot.SetStoredItem(def.GetDefaultInstance(1));
+            return "slot " + i + " of " + v.VehicleName + " holds " + id;
+        }
+
+        /// <summary><c>bodyshop trunk move x y z</c> puts the car in Marco's hall at that spot, so the next car can come in.</summary>
+        private static string MoveHallCar(string[] p)
+        {
+            var v = Registry.VehicleIn(BodyshopApi.MarcoGarage, out string why, out _);
+            if (v == null) return "no vehicle in the hall: " + why;
+            var f = new float[3];
+            if (p.Length < 6) return "needs x y z";
+            for (int i = 0; i < 3; i++)
+                if (!float.TryParse(p[i + 3], NumberStyles.Float, CultureInfo.InvariantCulture, out f[i])) return "'" + p[i + 3] + "' is not a number";
+            var rb = v.GetComponent<Rigidbody>();
+            if (rb != null) { rb.velocity = Vector3.zero; rb.angularVelocity = Vector3.zero; }
+            v.transform.position = new Vector3(f[0], f[1], f[2]);
+            if (rb != null) rb.position = v.transform.position;
+            return v.VehicleName + " moved to " + v.transform.position.ToString("F1");
         }
 
         private static void Bays()
