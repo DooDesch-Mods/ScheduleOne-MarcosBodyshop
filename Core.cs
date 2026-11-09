@@ -30,6 +30,7 @@ namespace MarcosBodyshop
             Builtin.LooksShop.Register();
             Builtin.HornShop.Register();
             Builtin.PerformanceShop.Register();
+            Builtin.Trunk.Register();
 
             // No PatchAll here: MelonLoader applies the [HarmonyPatch] classes of a MelonMod itself.
             int patched = 0;
@@ -45,6 +46,7 @@ namespace MarcosBodyshop
             Net.Sync.Tick();
             Builtin.Nitro.Tick();
             Builtin.MarcoGarage.Tick();
+            Builtin.Trunk.Tick();
         }
 
         public override void OnLateUpdate()

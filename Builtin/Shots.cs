@@ -37,6 +37,13 @@ namespace MarcosBodyshop.Builtin
             return CameraShot.Around(v, c + new Vector3(-h.x * 1.8f, h.y * 0.2f, -h.z * 1.9f), c + new Vector3(0f, -h.y * 0.2f, -h.z * 0.3f), 55f);
         }
 
+        /// <summary>From the rear left and above, onto the roof.</summary>
+        internal static CameraShot? Roof(LandVehicle v)
+        {
+            Box(v, out var c, out var h);
+            return CameraShot.Around(v, c + new Vector3(-h.x * 1.9f, h.y * 2.6f, -h.z * 1.5f), c + new Vector3(0f, h.y * 0.7f, 0f), 55f);
+        }
+
         /// <summary>The whole side, low.</summary>
         internal static CameraShot? Side(LandVehicle v)
         {
