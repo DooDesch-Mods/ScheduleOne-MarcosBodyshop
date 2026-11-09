@@ -35,7 +35,7 @@ namespace MarcosBodyshop.Config
             ("suspension_1", 625, "Lowered Suspension.", 500), ("suspension_2", 1250, "Street Suspension.", 1000),
             ("suspension_3", 2200, "Sport Suspension.", 1750), ("suspension_4", 3125, "Competition Suspension.", 2500),
             ("turbo", 4700, "Turbo Tuning.", 3750),
-            ("tyres_drift", 950, "Drift Tyres.", 750),
+            ("tyres_drift", 950, "Drift Tyres.", 750), ("bodyshop_tyres_grip", 950, "Grip Tyres.", 950),
             ("bodyshop_steering_1", 950, "Quick Steering Rack.", 750), ("bodyshop_steering_2", 2200, "Race Steering Rack.", 1750),
             ("bodyshop_weight_1", 1250, "Lightweight Panels.", 1000), ("bodyshop_weight_2", 3125, "Carbon Body.", 2500),
             ("bodyshop_nitro", 6250, "Nitrous Kit.", 5000),
