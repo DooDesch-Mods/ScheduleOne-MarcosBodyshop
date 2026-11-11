@@ -56,7 +56,10 @@ namespace MarcosBodyshop.Builtin
             }
             ChassisApi.TuningChanged += (v, key) =>
             {
-                if (key == "*" || string.Equals(key, "part." + Slot, StringComparison.OrdinalIgnoreCase)) Sync(v, "tuning " + key);
+                // A trunk part bought or removed is the player's choice and wins over another mod's size; "*" is the
+                // whole tuning arriving (load, late join) and respects it.
+                if (string.Equals(key, "part." + Slot, StringComparison.OrdinalIgnoreCase)) Sync(v, "tuning " + key, force: true);
+                else if (key == "*") Sync(v, "tuning " + key);
             };
 
             BodyshopApi.RegisterCategory(new BodyshopCategory
@@ -146,18 +149,66 @@ namespace MarcosBodyshop.Builtin
             return null;
         }
 
-        /// <summary>Brings the car's trunk to the size its installed tier asks for.</summary>
-        internal static void Sync(LandVehicle v, string why)
+        /// <summary>The slot count Bodyshop last gave a car, and the tier it was for, by instance id.</summary>
+        private static readonly Dictionary<int, (int slots, int tier)> Applied = new Dictionary<int, (int, int)>();
+
+        /// <summary>Cars whose trunk size another mod set; Bodyshop leaves them until the player changes the tier.</summary>
+        private static readonly HashSet<int> Foreign = new HashSet<int>();
+
+        private static int Key(LandVehicle v) => v.GetInstanceID();
+
+        /// <summary>
+        /// Brings the car's trunk to the size its installed tier asks for. Without <paramref name="force"/> a size that
+        /// Bodyshop did not set stays: another mod that sizes trunks would otherwise be undone every check, and both
+        /// would resize back and forth.
+        /// </summary>
+        internal static void Sync(LandVehicle v, string why, bool force = false)
         {
             int stock = StockOf(v);
             if (stock == 0) return;
-            int want = Target(stock, TierOf(v));
-            int had = SlotsOf(v);
-            if (had == want) return;
+            int key = Key(v), tier = TierOf(v), had = SlotsOf(v);
+            if (force)
+            {
+                if (Foreign.Remove(key)) Core.Log.Msg("[Trunk] " + Describe(v) + ": the trunk tier changed - Bodyshop sizes this trunk again.");
+            }
+            else
+            {
+                if (Foreign.Contains(key)) return;
+                bool known = Applied.TryGetValue(key, out var mine);
+                if (known && had != mine.slots)
+                {
+                    Foreign.Add(key);
+                    Core.Log.Msg("[Trunk] " + Describe(v) + ": another mod set the trunk to " + had + " slot(s) (Bodyshop set " + mine.slots + ") - Bodyshop leaves it (" + why + ").");
+                    return;
+                }
+                if (!known && tier == 0)
+                {
+                    // No tier and never resized by Bodyshop: the size is the game's or another mod's.
+                    if (had != stock)
+                    {
+                        Foreign.Add(key);
+                        Core.Log.Msg("[Trunk] " + Describe(v) + ": " + had + " slot(s) without a Bodyshop tier (stock " + stock + ") - Bodyshop leaves it (" + why + ").");
+                    }
+                    return;
+                }
+            }
+            int want = Target(stock, tier);
+            if (had == want) { Applied[key] = (want, tier); return; }
             int now = Resize(v, want, out string note);
+            Applied[key] = (now, tier);
             if (now == had) Core.Log.Warning("[Trunk] " + Describe(v) + ": stays at " + had + " slot(s), wanted " + want + " (" + why + ")" + (note != null ? " - " + note : "."));
             else Core.Log.Msg("[Trunk] " + Describe(v) + ": " + had + " -> " + now + " slot(s) (" + why + ")" + (note != null ? " - " + note : "."));
         }
+
+        /// <summary>Keeps the record in step when Bodyshop itself grows a trunk outside <see cref="Sync"/>.</summary>
+        internal static void NoteGrown(LandVehicle v, int now)
+        {
+            if (v == null) return;
+            int key = Key(v);
+            if (Applied.TryGetValue(key, out var mine)) Applied[key] = (now, mine.tier);
+        }
+
+        internal static bool IsForeign(LandVehicle v) => v != null && Foreign.Contains(Key(v));
 
         /// <summary>
         /// Grows or shrinks the trunk to <paramref name="want"/> slots, never above <see cref="Cap"/>. Shrinking removes
@@ -209,12 +260,16 @@ namespace MarcosBodyshop.Builtin
             var v = s.GetComponentInParent<LandVehicle>();
             if (v == null || v.Storage == null || v.Storage.Pointer != s.Pointer) return;
             int now = Resize(v, index + 1, out string note);
+            NoteGrown(v, now);
             Core.Log.Msg("[Trunk] " + Describe(v) + ": grew to " + now + " slot(s) for " + why + " on slot " + index + (note != null ? " - " + note : "."));
         }
 
         private static float _nextCheck;
 
-        /// <summary>Every two seconds: cars whose tuning arrived without an event (load, late join) get their size.</summary>
+        /// <summary>
+        /// Every two seconds: cars whose tuning arrived without an event (load, late join) get their size. A car whose
+        /// size and tier still match what Bodyshop gave it is skipped.
+        /// </summary>
         internal static void Tick()
         {
             if (Time.time < _nextCheck) return;
@@ -224,7 +279,12 @@ namespace MarcosBodyshop.Builtin
             foreach (var v in vm.AllVehicles)
             {
                 if (v == null || StockOf(v) == 0) continue;
-                if (SlotsOf(v) != Target(StockOf(v), TierOf(v))) Sync(v, "check");
+                int key = Key(v);
+                if (Foreign.Contains(key)) continue;
+                if (Applied.TryGetValue(key, out var mine) && mine.slots == SlotsOf(v) && mine.tier == TierOf(v)) continue;
+                int tier = TierOf(v);
+                if (SlotsOf(v) != Target(StockOf(v), tier) || Applied.ContainsKey(key)) Sync(v, "check");
+                else if (tier > 0) Applied[key] = (SlotsOf(v), tier);
             }
         }
 
@@ -251,7 +311,8 @@ namespace MarcosBodyshop.Builtin
                 for (int i = 0; i < s.ItemSlots.Count; i++)
                     if (s.ItemSlots[i] != null && s.ItemSlots[i].ItemInstance != null) filled.Add(i.ToString());
             return Describe(v) + ": tier " + tier + ", " + SlotsOf(v) + " slot(s), wants " + (stock > 0 ? Target(stock, tier).ToString() : "-")
-                + ", rows " + (s != null ? s.DisplayRowCount : 0) + ", filled [" + string.Join(",", filled) + "]";
+                + ", rows " + (s != null ? s.DisplayRowCount : 0) + ", filled [" + string.Join(",", filled) + "]"
+                + (IsForeign(v) ? ", size left to another mod" : "");
         }
     }
 
@@ -271,6 +332,7 @@ namespace MarcosBodyshop.Builtin
                 int saved = items.Length, have = __instance.Storage.ItemSlots.Count;
                 if (saved <= have) return;
                 int now = Trunk.Resize(__instance, Math.Min(saved, Trunk.Cap), out string note);
+                Trunk.NoteGrown(__instance, now);
                 Core.Log.Msg("[Trunk] " + Trunk.Describe(__instance) + ": the save holds " + saved + " slot(s), trunk grown " + have + " -> " + now + (note != null ? " - " + note : "."));
             }
             catch (Exception e) { Core.Log.Error("[Trunk] growing the trunk before load failed, items in extra slots may be lost: " + e); }
