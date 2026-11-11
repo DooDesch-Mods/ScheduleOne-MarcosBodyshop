@@ -24,6 +24,7 @@ namespace MarcosBodyshop.Debug
     /// <item><c>bodyshop park x z yaw</c> - where the yard puts a vehicle on the next open (to find the spot).</item>
     /// <item><c>bodyshop trunk</c> - every car's trunk tier and slot count, and the props of the roof load.</item>
     /// <item><c>bodyshop trunk put N [item]</c> / <c>take N</c> - fill or empty slot N of the trunk of the car in the hall.</item>
+    /// <item><c>bodyshop trunk foreign N</c> - size the trunk of the car in the hall like another mod would.</item>
     /// <item><c>bodyshop nitro [seconds]</c> - burn nitro in the driven car without the key; no number shows the state.</item>
     /// </list>
     /// </summary>
@@ -85,6 +86,7 @@ namespace MarcosBodyshop.Debug
                 case "trunk":
                     if (a == "put" || a == "take") { Say("trunk " + a + ": " + TrunkSlot(a, p)); break; }
                     if (a == "move") { Say("trunk move: " + MoveHallCar(p)); break; }
+                    if (a == "foreign") { Say("trunk foreign: " + ForeignSize(p)); break; }
                     Say("trunk: " + Builtin.Trunk.Report());
                     {
                         var hall = Registry.VehicleIn(BodyshopApi.MarcoGarage, out string hallWhy, out _);
@@ -93,9 +95,22 @@ namespace MarcosBodyshop.Debug
                     Say("trunk props: " + Builtin.RoofLoad.Report());
                     break;
                 default:
-                    Say("bodyshop trunk | nitro [seconds] | open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | radio x y z yaw | park x z yaw | cash N");
+                    Say("bodyshop trunk [put N|take N|foreign N] | nitro [seconds] | open [garage] | close | bays [show|hide] | key up|down|enter|back | list cat | pick cat/entry | buy cat/entry | cam ex ey ez tx ty tz | radio x y z yaw | park x z yaw | cash N");
                     break;
             }
+        }
+
+        /// <summary>
+        /// <c>bodyshop trunk foreign N</c> sizes the trunk of the car in Marco's hall to N slots the way another mod
+        /// would: straight on the storage, without Bodyshop's record.
+        /// </summary>
+        private static string ForeignSize(string[] p)
+        {
+            var v = Registry.VehicleIn(BodyshopApi.MarcoGarage, out string why, out _);
+            if (v == null) return "no vehicle in the hall: " + why;
+            if (p.Length < 4 || !int.TryParse(p[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out int n)) return "needs a slot count";
+            int now = Builtin.Trunk.Resize(v, n, out string note);
+            return Builtin.Trunk.Describe(v) + " set to " + now + " slot(s)" + (note != null ? " - " + note : "");
         }
 
         /// <summary>
