@@ -4,6 +4,12 @@ All notable changes to Marco's Bodyshop are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to Semantic Versioning.
 
+## [1.2.1] - 2026-11-11
+
+### Fixed
+- A trunk size set by another mod now stays. Bodyshop no longer resizes every car every two seconds, which
+  spammed the log and cost frame rate.
+
 ## [1.2.0] - 2026-11-09
 
 ### Added
