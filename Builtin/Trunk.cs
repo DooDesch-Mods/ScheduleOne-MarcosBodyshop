@@ -20,12 +20,15 @@ namespace MarcosBodyshop.Builtin
     /// <summary>
     /// Trunk: three tiers of extra trunk slots, one at a time in the Chassis slot "trunk". Each tier adds five slots to
     /// the car's own count, up to the 20 the game's storage window can show; a tier that would add nothing on a car
-    /// is not offered there. The load rides on the roof, built from the game's own props.
+    /// is not offered there. The load rides on the roof, built from the game's own props. A free switch per car hides
+    /// the load and keeps the slots; it is the Chassis tuning key <see cref="LoadKey"/>, so Chassis saves it with the
+    /// car and sends it to every player.
     /// </summary>
     internal static class Trunk
     {
         internal const string Slot = "trunk";
         internal const int Cap = 20, PerTier = 5;
+        internal const string LoadKey = "bodyshop.trunkload", LoadHidden = "hidden";
 
         private static readonly (string id, string label, int price)[] Tiers =
         {
@@ -48,7 +51,7 @@ namespace MarcosBodyshop.Builtin
                 var part = new TuningPart
                 {
                     Id = Tiers[t - 1].id, Slot = Slot, Label = L10n.T(Tiers[t - 1].label), Price = Tiers[t - 1].price,
-                    Build = v => RoofLoad.Build(v, tier),
+                    Build = v => Track(v, RoofLoad.Build(v, tier)),
                 };
                 foreach (var kv in Stock)
                     if (Target(kv.Value, tier) > Target(kv.Value, tier - 1)) part.Fits[kv.Key] = new PartFit();
@@ -60,6 +63,7 @@ namespace MarcosBodyshop.Builtin
                 // whole tuning arriving (load, late join) and respects it.
                 if (string.Equals(key, "part." + Slot, StringComparison.OrdinalIgnoreCase)) Sync(v, "tuning " + key, force: true);
                 else if (key == "*") Sync(v, "tuning " + key);
+                if (key == "*" || string.Equals(key, LoadKey, StringComparison.OrdinalIgnoreCase)) RefreshLoad(v, "tuning " + key);
             };
 
             BodyshopApi.RegisterCategory(new BodyshopCategory
@@ -104,6 +108,74 @@ namespace MarcosBodyshop.Builtin
                     Apply = x => EmptyBeyond(x, Target(StockOf(x), tier)) ?? (ChassisApi.InstallPart(x, id) ? null : "The part does not fit."),
                 };
             }
+            if (TierOf(v) > 0)
+                yield return new BodyshopEntry
+                {
+                    Id = "load",
+                    Label = L10n.T("Roof Load"),
+                    Toggle = true,
+                    Price = 0,
+                    Installed = x => !IsLoadHidden(x),
+                    Apply = x => ChassisApi.SetTuning(x, LoadKey, IsLoadHidden(x) ? "" : LoadHidden) ? null : "The garage could not do it.",
+                };
+        }
+
+        // ---- the roof load switch ------------------------------------------------------------------------------------
+
+        /// <summary>The roof load Chassis last built per car, by instance id; a rebuild replaces it.</summary>
+        private static readonly Dictionary<int, (LandVehicle v, GameObject root)> Loads = new Dictionary<int, (LandVehicle, GameObject)>();
+
+        internal static bool IsLoadHidden(LandVehicle v)
+            => v != null && string.Equals(ChassisApi.GetTuning(v, LoadKey), LoadHidden, StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Chassis builds the part model whenever the car's parts or paint change, and activates its root. The pieces
+        /// under the root follow the switch, so the trunk part stays fitted with the load hidden.
+        /// </summary>
+        private static GameObject Track(LandVehicle v, GameObject root)
+        {
+            if (v == null || root == null) return root;
+            Loads[Key(v)] = (v, root);
+            ShowLoad(v, root, "built");
+            return root;
+        }
+
+        internal static void RefreshLoad(LandVehicle v, string why)
+        {
+            if (v == null) return;
+            int key = Key(v);
+            if (!Loads.TryGetValue(key, out var t))
+            {
+                if (why != "tuning *") Core.Log.Msg("[Trunk] " + Describe(v) + ": no roof load built yet - the switch applies when Chassis builds it (" + why + ").");
+                return;
+            }
+            if (t.root == null) { Loads.Remove(key); return; }
+            ShowLoad(v, t.root, why);
+        }
+
+        private static void ShowLoad(LandVehicle v, GameObject root, string why)
+        {
+            bool show = !IsLoadHidden(v);
+            int changed = 0;
+            var tr = root.transform;
+            for (int i = 0; i < tr.childCount; i++)
+            {
+                var go = tr.GetChild(i).gameObject;
+                if (go.activeSelf == show) continue;
+                go.SetActive(show);
+                changed++;
+            }
+            if (changed > 0) Core.Log.Msg("[Trunk] " + Describe(v) + ": roof load " + (show ? "shown" : "hidden") + ", " + changed + " piece(s) (" + why + ").");
+        }
+
+        private static string LoadReport(LandVehicle v)
+        {
+            string flag = IsLoadHidden(v) ? "hidden" : "shown";
+            if (!Loads.TryGetValue(Key(v), out var t) || t.root == null) return flag + ", no model";
+            var tr = t.root.transform;
+            int on = 0;
+            for (int i = 0; i < tr.childCount; i++) if (tr.GetChild(i).gameObject.activeSelf) on++;
+            return flag + ", " + on + "/" + tr.childCount + " pieces";
         }
 
         // ---- slot counts -------------------------------------------------------------------------------------------
@@ -286,6 +358,12 @@ namespace MarcosBodyshop.Builtin
                 if (SlotsOf(v) != Target(StockOf(v), tier) || Applied.ContainsKey(key)) Sync(v, "check");
                 else if (tier > 0) Applied[key] = (SlotsOf(v), tier);
             }
+            if (Loads.Count == 0) return;
+            foreach (var kv in new List<KeyValuePair<int, (LandVehicle v, GameObject root)>>(Loads))
+            {
+                if (kv.Value.v == null || kv.Value.root == null) { Loads.Remove(kv.Key); continue; }
+                ShowLoad(kv.Value.v, kv.Value.root, "check");
+            }
         }
 
         internal static string Describe(LandVehicle v) => v == null ? "no vehicle" : v.VehicleName + " (" + ChassisApi.CodeOf(v) + ")";
@@ -312,6 +390,7 @@ namespace MarcosBodyshop.Builtin
                     if (s.ItemSlots[i] != null && s.ItemSlots[i].ItemInstance != null) filled.Add(i.ToString());
             return Describe(v) + ": tier " + tier + ", " + SlotsOf(v) + " slot(s), wants " + (stock > 0 ? Target(stock, tier).ToString() : "-")
                 + ", rows " + (s != null ? s.DisplayRowCount : 0) + ", filled [" + string.Join(",", filled) + "]"
+                + ", load " + LoadReport(v)
                 + (IsForeign(v) ? ", size left to another mod" : "");
         }
     }
