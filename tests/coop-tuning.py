@@ -122,10 +122,16 @@ class Run:
     # ---- reports ------------------------------------------------------------------------------------------------
 
     def trunk(self, g, code):
-        """The `bodyshop trunk` entry of the car with that Chassis code that has a Bodyshop tier, else the first one."""
-        text = self.cmd(g, "bodyshop trunk", until=r"trunk props:", wait=6000)
-        m = re.search(r"\[Console\] trunk: (.*)", text)
+        """The `bodyshop trunk` entry of the car with that Chassis code that has a Bodyshop tier, else the first one.
+        Read from the log file: the bridge cuts long lines, and the report lists every car of the save on one line."""
+        log = Log(g)
+        self.cmd(g, "bodyshop trunk", until=r"trunk props:", wait=6000)
+        log.wait(r"\[Console\] trunk props:", 6)
+        m = None
+        for line in log.lines():
+            m = re.search(r"\[Console\] trunk: (.*)", line) or m
         if not m:
+            print("      [coop-tuning] warn: no 'trunk:' report in the %s log" % g.slot, flush=True)
             return ""
         found = [p for p in m.group(1).split(" | ") if "(" + code + ")" in p]
         tiered = [p for p in found if not re.search(r": tier 0,", p)]
@@ -314,11 +320,42 @@ class Run:
         ok, rep = self.wait_trunk(g, CAR_B, r"tier 2, 15 slot\(s\).*load shown, (\d+)/\1 piece", timeout=30)
         self.check("%s: car B has tier 2 with the load shown" % who, ok, rep)
 
-    def reload_host(self):
-        out = subprocess.run([sys.executable, "-I", os.path.join(HERE, "reload-save.py"), "--slot", self.host.slot, "--save", "5"],
-                             capture_output=True, text=True, encoding="utf-8", errors="replace")
-        tail = (out.stdout + out.stderr).strip().splitlines()[-3:]
-        return self.check("host saves and loads save 5", out.returncode == 0, " | ".join(tail))
+    def stop_exe(self, g):
+        exe = os.path.join(g.root, "Schedule I.exe")
+        stop = ("Get-CimInstance Win32_Process -Filter \"Name='Schedule I.exe'\" | Where-Object { $_.ExecutablePath -eq '%s' } "
+                "| ForEach-Object { Stop-Process -Id $_.ProcessId -Force; 'stopped ' + $_.ProcessId }") % exe.replace("'", "''")
+        out = subprocess.run(["pwsh", "-NoProfile", "-Command", stop], capture_output=True, text=True)
+        print("      %s: %s" % (g.slot, out.stdout.strip() or "was not running"), flush=True)
+        return exe
+
+    def restart_host(self, save, timeout=300):
+        """Saves, ends the host's game and starts it again as duo.ps1 does: --host opens a new lobby before the world
+        loads. Going back to the menu instead would close the lobby and leave nothing to join."""
+        log = Log(self.host)
+        answer = self.host.call("save_now", {}, timeout_ms=30000)
+        saved = log.wait(r"(?i)sav(ed|ing) (complete|done|finished)|Save complete|SaveManager", 20)
+        print("      save_now: %s | %s" % (answer.get("result") or answer.get("error"), saved or "no save line in 20 s"), flush=True)
+        time.sleep(5)
+        self.stop_exe(self.client)
+        exe = self.stop_exe(self.host)
+        time.sleep(4)
+        subprocess.Popen([exe, "--host", "--autoload", "--saveslot", str(save - 1)], cwd=self.host.root)
+        ready, last = self.host.wait_ready(timeout=timeout, say=lambda s: None)
+        if not self.check("host saves, restarts and loads save %d" % save, ready, "not ready after %d s: %s" % (timeout, last) if not ready else ""):
+            return False
+        mark = Log(self.host)
+        self.cmd(self.host, "shpublish", wait=4000)
+        time.sleep(3)
+        self.cmd(self.host, "shdiag", wait=4000)
+        line = mark.wait(r"lobbyId=(\d+)", 10)
+        lobby = re.search(r"lobbyId=(\d+)", line).group(1) if line else ""
+        if not self.check("host opens a new lobby", lobby not in ("", "0"), "lobby " + lobby if lobby else "no lobbyId in shdiag"):
+            return False
+        folder = os.path.join(self.host.root, "UserData", "LocalLobby")
+        os.makedirs(folder, exist_ok=True)
+        with open(os.path.join(folder, "lobby.txt"), "w", encoding="utf-8") as handle:
+            handle.write(lobby)
+        return True
 
     def errors(self, g, log, who):
         bad = [l for l in log.lines() if ERROR.search(l) and OURS.search(l)]
@@ -330,23 +367,26 @@ def main():
     parser.add_argument("--host", default="mptest5")
     parser.add_argument("--client", default="mptest6")
     parser.add_argument("--timeout", type=int, default=300)
+    parser.add_argument("--save", type=int, default=5, help="the save duo.ps1 loaded on the host, as the menu numbers it")
+    parser.add_argument("--late-join-only", action="store_true",
+                        help="the cars are tuned already: only save, restart the host, check it and the late join")
     parser.add_argument("--joined", action="store_true", help="the client is already in the host's world")
     a = parser.parse_args()
     run = Run(a.host, a.client)
     hlog = Log(run.host)
-    if not a.joined:
-        if not run.join(a.timeout):
-            sys.exit(run.summary())
-    clog = Log(run.client)
-    run.finish_creator()
-
-    if run.car_a() and run.client_buys_a():
-        run.car_b()
+    if not a.late_join_only:
+        if not a.joined:
+            if not run.join(a.timeout):
+                sys.exit(run.summary())
+        clog = Log(run.client)
+        run.finish_creator()
+        if run.car_a() and run.client_buys_a():
+            run.car_b()
+        run.errors(run.host, hlog, "host")
+        run.errors(run.client, clog, "client")
     run.final_state(run.host, "host before saving")
-    run.errors(run.host, hlog, "host")
-    run.errors(run.client, clog, "client")
 
-    if run.reload_host():
+    if run.restart_host(a.save):
         hlog = Log(run.host)
         run.final_state(run.host, "host after loading")
         if run.join(a.timeout):
