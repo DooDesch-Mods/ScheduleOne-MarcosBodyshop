@@ -4,6 +4,12 @@ All notable changes to Marco's Bodyshop are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 project adheres to Semantic Versioning.
 
+## [1.3.0] - 2026-11-16
+
+### Added
+- Roof Load switch in Marco's trunk menu: hides the load of Spare Tyres, Box Stack or Moving Day on one car, free and
+  any time. The extra trunk slots stay.
+
 ## [1.2.1] - 2026-11-11
 
 ### Fixed
