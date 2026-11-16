@@ -34,7 +34,7 @@ over the car, the camera moves to the part you look at, and the car shows each c
 - **Nitro** - hold Left Ctrl for a boost with a nitrous rush and blue flames at the exhaust. The stamina bar shows
   the tank, which refills by itself in 90 seconds.
 - **Turbo**, and **Drift Tyres** or **Grip Tyres**.
-- **Trunk** - three tiers with 5, 10 or 15 more trunk slots (up to 20), with spare tyres, a stack of boxes or a moving load strapped to the roof.
+- **Trunk** - three tiers with 5, 10 or 15 more trunk slots (up to 20), with spare tyres, a stack of boxes or a moving load strapped to the roof. A free switch per car hides the load and keeps the slots.
 
 Parts are paid from your bank balance, like Marco's respray. Stock is always free. A part you replace is not
 refunded.
@@ -50,8 +50,8 @@ Nitro has `NitroKey`, `NitroBoost`, `NitroSeconds` and `NitroRechargeSeconds` th
 
 ## Multiplayer
 
-Everyone needs the mod. One player at a time uses Marco's garage. The buyer pays, and the host fits the part
-on the car, so every player sees it.
+Everyone needs the mod. Every player can tune any car at Marco's, not only the host, and pays from their own
+bank balance. One player at a time uses the garage. Every player sees the result.
 
 ## For mod authors
 

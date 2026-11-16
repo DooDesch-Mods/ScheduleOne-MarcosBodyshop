@@ -128,6 +128,7 @@ namespace MarcosBodyshop.Localization
                 ["Spare Tyres"] = "Reifenstapel",
                 ["Box Stack"] = "Kistenturm",
                 ["Moving Day"] = "Umzugstag",
+                ["Roof Load"] = "Dachladung",
                 ["{0} slots"] = "{0} Plätze",
                 ["{0} slots."] = "{0} Plätze.",
                 ["Empty the extra trunk space first."] = "Räum zuerst den zusätzlichen Kofferraum leer.",
